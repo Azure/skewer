@@ -1,0 +1,16 @@
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: test + calculate coverage
+      run: "bash ci/cover.sh"
+    - uses: codecov/codecov-action@v1
