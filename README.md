@@ -1,4 +1,4 @@
-# skewer [![GoDoc](https://godoc.org/github.com/Azure/skewer?status.svg)](https://godoc.org/github.com/Azure/skewer) [![codecov](https://codecov.io/gh/azure/skewer/branch/master/graph/badge.svg)](https://codecov.io/gh/azure/skewer)
+# skewer [![GoDoc](https://godoc.org/github.com/Azure/skewer?status.svg)](https://godoc.org/github.com/Azure/skewer) [![codecov](https://codecov.io/gh/azure/skewer/branch/main/graph/badge.svg)](https://codecov.io/gh/azure/skewer)
 
 A package to simplify working with Azure's Resource SKU APIs by wrapping
 the existing Azure SDK for Go.
