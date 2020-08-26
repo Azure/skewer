@@ -74,6 +74,55 @@ if err != nil {
 fmt.Printf("vm sku %s has %d vCPU cores and %.2fGi of memory", sku.GetName(), cpu, memory)
 ```
 
+# Development
+
+This project uses a simple [justfile](https://github.com/casey/just) for
+make-like functionality. The commands are simple enough to run on their
+own if you do not want to install just.
+
+For each command below like `just $CMD`, the full manual commands are
+below separated by one line.
+
+Default: tidy, fmt, lint, test and calculate coverage.
+```
+$ just
+$
+$ go mod tidy
+$ go fmt
+$ golangci-lint run --fix
+$ go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+$ go tool cover -html=coverage.out -o coverage.html
+```
+
+Clean up dependencies:
+```
+$ just tidy
+$
+$ go mod tidy
+```
+
+Format:
+```
+$ just fmt
+$
+$ go fmt
+```
+
+Lint:
+```
+$ just lint
+$
+$ golangci-lint run --fix
+```
+
+Test and calculate coverage:
+```
+$ just cover
+$ 
+$ go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+$ go tool cover -html=coverage.out -o coverage.html
+```
+
 # Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
