@@ -22,19 +22,24 @@ import (
 )
 
 func main() {
+    // Create an authorizer
     authorizer, err := auth.NewAuthorizerFromEnvironment()
     if err != nil {
         fmt.Printf("failed to get authorizer: %s", err)
         os.Exit(1)
     }
-	client := compute.NewResourceSkusClient(sub)
+
+    // Create a skus client
+    client := compute.NewResourceSkusClient(sub)
     client.Authorizer = authorizer
+
     // Now we can use the client...
     resourceSkuIterator, err := client.ListComplete(context.Background(), "eastus")
     if err != nil {
         fmt.Printf("failed to list skus: %s", err)
-            os.Exit(1)
-        }
+        os.Exit(1)
+    }
+
     // or instantiate a cache for this package!
     cache, err := skewer.NewCache(context.Background(), skewer.WithLocation("eastus"), skewer.WithResourceClient(client))
     if err != nil {
