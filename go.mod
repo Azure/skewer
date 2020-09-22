@@ -1,4 +1,4 @@
-module github.com/alexeldeib/skewer
+module github.com/Azure/skewer
 
 go 1.13
 
