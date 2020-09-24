@@ -149,10 +149,11 @@ func (c *Cache) refresh(ctx context.Context) error {
 }
 
 // Get returns the first matching resource of a given name and type in a location.
-func (c *Cache) Get(ctx context.Context, name, resourceType string) (SKU, bool) {
+func (c *Cache) Get(ctx context.Context, name, resourceType, location string) (SKU, bool) {
 	filtered := Filter(c.data, []FilterFn{
 		ResourceTypeFilter(resourceType),
 		NameFilter(name),
+		LocationFilter(location),
 	}...)
 
 	if len(filtered) < 1 {
@@ -299,6 +300,13 @@ func ResourceTypeFilter(resourceType string) func(*SKU) bool {
 func NameFilter(name string) func(*SKU) bool {
 	return func(s *SKU) bool {
 		return stringEquals(s.GetName(), name)
+	}
+}
+
+// LocationFilter produces a filter function for the location of a resource sku.
+func LocationFilter(location string) func(*SKU) bool {
+	return func(s *SKU) bool {
+		return stringEquals(s.GetLocation(), location)
 	}
 }
 

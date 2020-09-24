@@ -100,7 +100,7 @@ func Test_Data(t *testing.T) {
 					errCapabilityValueNil := &ErrCapabilityValueParse{}
 					errCapabilityNotFound := &ErrCapabilityNotFound{}
 
-					sku, found := cache.Get(ctx, "standard_d4s_v3", VirtualMachines)
+					sku, found := cache.Get(ctx, "standard_d4s_v3", VirtualMachines, "eastus")
 					if !found {
 						t.Errorf("expected to find virtual machine sku standard_d4s_v3")
 					}
@@ -166,7 +166,7 @@ func Test_Data(t *testing.T) {
 					errCapabilityValueNil := &ErrCapabilityValueParse{}
 					errCapabilityNotFound := &ErrCapabilityNotFound{}
 
-					sku, found := cache.Get(ctx, "Standard_D2_v2", VirtualMachines)
+					sku, found := cache.Get(ctx, "Standard_D2_v2", VirtualMachines, "eastus")
 					if !found {
 						t.Errorf("expected to find virtual machine sku standard_d2_v2")
 					}
@@ -230,7 +230,7 @@ func Test_Data(t *testing.T) {
 				})
 
 				t.Run("standard_D13_v2_promo", func(t *testing.T) {
-					sku, found := cache.Get(ctx, "standard_D13_v2_promo", VirtualMachines)
+					sku, found := cache.Get(ctx, "standard_D13_v2_promo", VirtualMachines, "eastus")
 					if !found {
 						t.Errorf("expected to find virtual machine sku standard_D13_v2_promo")
 					}
