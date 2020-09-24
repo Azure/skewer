@@ -3,7 +3,6 @@ package skewer
 import (
 	"context"
 	"fmt"
-	"strings"
 )
 
 // Config contains configuration options for a cache.
@@ -299,7 +298,7 @@ func ResourceTypeFilter(resourceType string) func(*SKU) bool {
 // NameFilter produces a filter function for the name of a resource sku.
 func NameFilter(name string) func(*SKU) bool {
 	return func(s *SKU) bool {
-		return strings.EqualFold(s.GetName(), name)
+		return stringEquals(s.GetName(), name)
 	}
 }
 
