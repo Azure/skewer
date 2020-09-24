@@ -245,7 +245,7 @@ func Test_Cache_Get(t *testing.T) {
 				data: Wrap(tc.have),
 			}
 
-			val, found := cache.Get(context.Background(), tc.sku, tc.resourceType)
+			val, found := cache.Get(context.Background(), tc.sku, tc.resourceType, "")
 			if tc.found != found {
 				t.Errorf("expected %t but got %t when trying to Get resource with name %s and resourceType %s",
 					tc.found,

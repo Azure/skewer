@@ -51,7 +51,7 @@ func main() {
 
 Once we have a cache, we can query against its contents:
 ```go
-sku, found := cache.Get(context.Background, "standard_d4s_v3", skewer.VirtualMachines)
+sku, found := cache.Get(context.Background, "standard_d4s_v3", skewer.VirtualMachines, "eastus")
 if !found {
     return fmt.Errorf("expected to find virtual machine sku standard_d4s_v3")
 }
