@@ -173,8 +173,8 @@ func (s *SKU) HasCapability(name string) bool {
 		return false
 	}
 	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
-			return capability.Value != nil && strings.EqualFold(*capability.Value, string(CapabilitySupported))
+		if capability.Name != nil && stringEquals(*capability.Name, name) {
+			return capability.Value != nil && stringEquals(*capability.Value, string(CapabilitySupported))
 		}
 	}
 	return false
@@ -202,8 +202,8 @@ func (s *SKU) HasZonalCapability(name string) bool {
 				continue
 			}
 			for _, capability := range *zoneDetails.Capabilities {
-				if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
-					if capability.Value != nil && strings.EqualFold(*capability.Value, string(CapabilitySupported)) {
+				if capability.Name != nil && stringEquals(*capability.Name, name) {
+					if capability.Value != nil && stringEquals(*capability.Value, string(CapabilitySupported)) {
 						return true
 					}
 				}
@@ -222,7 +222,7 @@ func (s *SKU) HasCapabilityWithSeparator(name, value string) bool {
 		return false
 	}
 	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
+		if capability.Name != nil && stringEquals(*capability.Name, name) {
 			return capability.Value != nil && strings.Contains(*capability.Value, value)
 		}
 	}
@@ -242,7 +242,7 @@ func (s *SKU) HasCapabilityWithCapacity(name string, value int64) (bool, error) 
 		return false, nil
 	}
 	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
+		if capability.Name != nil && stringEquals(*capability.Name, name) {
 			if capability.Value != nil {
 				intVal, err := strconv.ParseInt(*capability.Value, 10, 64)
 				if err != nil {
@@ -265,7 +265,7 @@ func (s *SKU) IsAvailable(location string) bool {
 		return false
 	}
 	for _, locationInfo := range *s.LocationInfo {
-		if strings.EqualFold(*locationInfo.Location, location) {
+		if stringEquals(*locationInfo.Location, location) {
 			if s.Restrictions != nil {
 				for _, restriction := range *s.Restrictions {
 					// Can't deploy to any zones in this location. We're done.
@@ -292,7 +292,7 @@ func (s *SKU) IsRestricted(location string) bool {
 		}
 		for _, candidate := range *restriction.Values {
 			// Can't deploy in this location. We're done.
-			if strings.EqualFold(candidate, location) && restriction.Type == compute.Location {
+			if stringEquals(candidate, location) && restriction.Type == compute.Location {
 				return true
 			}
 		}
@@ -305,7 +305,7 @@ func (s *SKU) IsRestricted(location string) bool {
 // such as "virtualMachines", "disks", "availabilitySets", "snapshots",
 // and "hostGroups/hosts".
 func (s *SKU) IsResourceType(t string) bool {
-	return s.ResourceType != nil && strings.EqualFold(*s.ResourceType, t)
+	return s.ResourceType != nil && stringEquals(*s.ResourceType, t)
 }
 
 // GetResourceType returns the name of this resource sku. It normalizes pointers
@@ -353,7 +353,7 @@ func (s *SKU) GetLocation() string {
 // AvailabilityZones returns the list of Availability Zones which have this resource SKU available and unrestricted.
 func (s *SKU) AvailabilityZones(location string) map[string]bool {
 	for _, locationInfo := range *s.LocationInfo {
-		if strings.EqualFold(*locationInfo.Location, location) {
+		if stringEquals(*locationInfo.Location, location) {
 			// Use map for easy deletion and iteration
 			availableZones := make(map[string]bool)
 
@@ -386,7 +386,7 @@ func (s *SKU) AvailabilityZones(location string) map[string]bool {
 
 // Equal returns true when two skus have the same location, type, and name.
 func (s *SKU) Equal(other *SKU) bool {
-	return strings.EqualFold(s.GetResourceType(), other.GetResourceType()) &&
-		strings.EqualFold(s.GetName(), other.GetName()) &&
-		strings.EqualFold(s.GetLocation(), other.GetLocation())
+	return stringEquals(s.GetResourceType(), other.GetResourceType()) &&
+		stringEquals(s.GetName(), other.GetName()) &&
+		stringEquals(s.GetLocation(), other.GetLocation())
 }

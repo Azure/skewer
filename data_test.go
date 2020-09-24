@@ -3,7 +3,6 @@ package skewer
 import (
 	"context"
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
@@ -105,7 +104,7 @@ func Test_Data(t *testing.T) {
 					if !found {
 						t.Errorf("expected to find virtual machine sku standard_d4s_v3")
 					}
-					if name := sku.GetName(); !strings.EqualFold(name, "standard_d4s_v3") {
+					if name := sku.GetName(); !stringEquals(name, "standard_d4s_v3") {
 						t.Errorf("expected standard_d4s_v3 to have name standard_d4s_v3, got: '%s'", name)
 					}
 					if resourceType := sku.GetResourceType(); resourceType != VirtualMachines {
@@ -171,7 +170,7 @@ func Test_Data(t *testing.T) {
 					if !found {
 						t.Errorf("expected to find virtual machine sku standard_d2_v2")
 					}
-					if name := sku.GetName(); !strings.EqualFold(name, "standard_d2_v2") {
+					if name := sku.GetName(); !stringEquals(name, "standard_d2_v2") {
 						t.Errorf("expected standard_d2_v2 to have name standard_d2_v2, got: '%s'", name)
 					}
 					if resourceType := sku.GetResourceType(); resourceType != VirtualMachines {
