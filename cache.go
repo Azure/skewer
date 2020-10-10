@@ -153,6 +153,7 @@ func (c *Cache) Get(ctx context.Context, name, resourceType, location string) (S
 	filtered := Filter(c.data, []FilterFn{
 		ResourceTypeFilter(resourceType),
 		NameFilter(name),
+		UnsafeLocationFilter(location),
 	}...)
 
 	if len(filtered) > 1 {
