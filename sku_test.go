@@ -327,8 +327,9 @@ func Test_SKU_IsResourceType(t *testing.T) {
 
 func Test_SKU_GetLocation(t *testing.T) {
 	cases := map[string]struct {
-		sku    compute.ResourceSku
-		expect string
+		sku       compute.ResourceSku
+		expect    string
+		expectErr string
 	}{
 		"nil locations should return empty string": {
 			sku:    compute.ResourceSku{},
@@ -356,14 +357,20 @@ func Test_SKU_GetLocation(t *testing.T) {
 			},
 			expect: "foo",
 		},
-		"should return first with multiple choices (sku api prefers to prefer 1 ResourceSku per location, synthetic test scenario only)": {
+		"should return error with multiple choices": {
 			sku: compute.ResourceSku{
 				Locations: &[]string{
 					"bar",
 					"foo",
 				},
 			},
-			expect: "bar",
+			expectErr: "ErrMultipleSKULocations",
+		},
+		"should return error with no choices": {
+			sku: compute.ResourceSku{
+				Locations: &[]string{},
+			},
+			expectErr: "ErrNoSKULocations",
 		},
 	}
 
@@ -371,7 +378,16 @@ func Test_SKU_GetLocation(t *testing.T) {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
 			sku := SKU(tc.sku)
-			if diff := cmp.Diff(tc.expect, sku.GetLocation()); diff != "" {
+			got, err := sku.GetLocation()
+			if tc.expectErr != "" {
+				if err == nil {
+					t.Errorf("expected error '%s', but got none", tc.expectErr)
+				}
+				if err.Error() != tc.expectErr {
+					t.Errorf("expected error '%s', but got '%s'", tc.expectErr, err.Error())
+				}
+			}
+			if diff := cmp.Diff(tc.expect, got); diff != "" {
 				t.Error(diff)
 			}
 		})

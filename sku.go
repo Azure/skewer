@@ -12,16 +12,6 @@ import (
 // SKU wraps an Azure compute SKU with richer functionality
 type SKU compute.ResourceSku
 
-// Wrap takes an array of compute resource skus and wraps them into an
-// array of our richer type.
-func Wrap(in []compute.ResourceSku) []SKU {
-	out := make([]SKU, len(in))
-	for index, value := range in {
-		out[index] = SKU(value)
-	}
-	return out
-}
-
 const (
 	// VirtualMachines is the .
 	VirtualMachines = "virtualMachines"
@@ -173,8 +163,8 @@ func (s *SKU) HasCapability(name string) bool {
 		return false
 	}
 	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && stringEquals(*capability.Name, name) {
-			return capability.Value != nil && stringEquals(*capability.Value, string(CapabilitySupported))
+		if capability.Name != nil && stringEqualsWithNormalization(*capability.Name, name) {
+			return capability.Value != nil && stringEqualsWithNormalization(*capability.Value, string(CapabilitySupported))
 		}
 	}
 	return false
@@ -202,8 +192,8 @@ func (s *SKU) HasZonalCapability(name string) bool {
 				continue
 			}
 			for _, capability := range *zoneDetails.Capabilities {
-				if capability.Name != nil && stringEquals(*capability.Name, name) {
-					if capability.Value != nil && stringEquals(*capability.Value, string(CapabilitySupported)) {
+				if capability.Name != nil && stringEqualsWithNormalization(*capability.Name, name) {
+					if capability.Value != nil && stringEqualsWithNormalization(*capability.Value, string(CapabilitySupported)) {
 						return true
 					}
 				}
@@ -222,7 +212,7 @@ func (s *SKU) HasCapabilityWithSeparator(name, value string) bool {
 		return false
 	}
 	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && stringEquals(*capability.Name, name) {
+		if capability.Name != nil && stringEqualsWithNormalization(*capability.Name, name) {
 			return capability.Value != nil && strings.Contains(*capability.Value, value)
 		}
 	}
@@ -242,7 +232,7 @@ func (s *SKU) HasCapabilityWithCapacity(name string, value int64) (bool, error) 
 		return false, nil
 	}
 	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && stringEquals(*capability.Name, name) {
+		if capability.Name != nil && stringEqualsWithNormalization(*capability.Name, name) {
 			if capability.Value != nil {
 				intVal, err := strconv.ParseInt(*capability.Value, 10, 64)
 				if err != nil {
@@ -265,7 +255,7 @@ func (s *SKU) IsAvailable(location string) bool {
 		return false
 	}
 	for _, locationInfo := range *s.LocationInfo {
-		if stringEquals(*locationInfo.Location, location) {
+		if stringEqualsWithNormalization(*locationInfo.Location, location) {
 			if s.Restrictions != nil {
 				for _, restriction := range *s.Restrictions {
 					// Can't deploy to any zones in this location. We're done.
@@ -292,7 +282,7 @@ func (s *SKU) IsRestricted(location string) bool {
 		}
 		for _, candidate := range *restriction.Values {
 			// Can't deploy in this location. We're done.
-			if stringEquals(candidate, location) && restriction.Type == compute.Location {
+			if stringEqualsWithNormalization(candidate, location) && restriction.Type == compute.Location {
 				return true
 			}
 		}
@@ -305,7 +295,7 @@ func (s *SKU) IsRestricted(location string) bool {
 // such as "virtualMachines", "disks", "availabilitySets", "snapshots",
 // and "hostGroups/hosts".
 func (s *SKU) IsResourceType(t string) bool {
-	return s.ResourceType != nil && stringEquals(*s.ResourceType, t)
+	return s.ResourceType != nil && stringEqualsWithNormalization(*s.ResourceType, t)
 }
 
 // GetResourceType returns the name of this resource sku. It normalizes pointers
@@ -325,68 +315,79 @@ func (s *SKU) GetName() string {
 	if s.Name == nil {
 		return ""
 	}
+
 	return *s.Name
 }
 
-// GetLocation returns the first found location on this *SKU resource.
-// Typically only one should be listed (multiple SKU results will be returned for multiple regions).
-// We fallback to locationInfo although this appears to be duplicate info.
-func (s *SKU) GetLocation() string {
-	if s.Locations != nil {
-		for _, location := range *s.Locations {
-			return location
-		}
+// GetLocation returns the location for a given SKU.
+func (s *SKU) GetLocation() (string, error) {
+	if s.Locations == nil {
+		return "", fmt.Errorf("ErrSKULocationNil")
 	}
 
-	// TODO(ace): probably should remove
-	if s.LocationInfo != nil {
-		for _, locationInfo := range *s.LocationInfo {
-			if locationInfo.Location != nil {
-				return *locationInfo.Location
-			}
-		}
+	if len(*s.Locations) < 1 {
+		return "", fmt.Errorf("ErrNoSKULocations")
 	}
 
-	return ""
+	if len(*s.Locations) > 1 {
+		return "", fmt.Errorf("ErrMultipleSKULocations")
+	}
+
+	return (*s.Locations)[0], nil
 }
 
 // AvailabilityZones returns the list of Availability Zones which have this resource SKU available and unrestricted.
 func (s *SKU) AvailabilityZones(location string) map[string]bool {
-	for _, locationInfo := range *s.LocationInfo {
-		if stringEquals(*locationInfo.Location, location) {
-			// Use map for easy deletion and iteration
-			availableZones := make(map[string]bool)
+	// Use map for easy deletion and iteration
+	availableZones := make(map[string]bool)
+	restrictedZones := make(map[string]bool)
 
+	for _, locationInfo := range *s.LocationInfo {
+		if stringEqualsWithNormalization(*locationInfo.Location, location) {
 			// add all zones
 			for _, zone := range *locationInfo.Zones {
 				availableZones[zone] = true
 			}
 
+			// iterate restrictions, remove any restricted zones for this location
 			if s.Restrictions != nil {
 				for _, restriction := range *s.Restrictions {
-					// Can't deploy to any zones in this location. We're done.
-					if restriction.Type == compute.Location {
-						availableZones = nil
-						break
-					}
+					if restriction.Values != nil {
+						for _, candidate := range *restriction.Values {
+							if stringEqualsWithNormalization(candidate, location) {
+								if restriction.Type == compute.Location {
+									// Can't deploy in this location. We're done.
+									return nil
+								}
 
-					// remove restricted zones
-					for _, restrictedZone := range *restriction.RestrictionInfo.Zones {
-						delete(availableZones, restrictedZone)
+								// remove restricted zones
+								if restriction.RestrictionInfo.Zones != nil {
+									for _, zone := range *restriction.RestrictionInfo.Zones {
+										restrictedZones[zone] = true
+									}
+								}
+							}
+						}
 					}
 				}
 			}
-
-			return availableZones
 		}
 	}
 
-	return nil
+	for zone := range restrictedZones {
+		delete(availableZones, zone)
+	}
+
+	return availableZones
 }
 
 // Equal returns true when two skus have the same location, type, and name.
 func (s *SKU) Equal(other *SKU) bool {
-	return stringEquals(s.GetResourceType(), other.GetResourceType()) &&
-		stringEquals(s.GetName(), other.GetName()) &&
-		stringEquals(s.GetLocation(), other.GetLocation())
+	location, localErr := s.GetLocation()
+	otherLocation, otherErr := s.GetLocation()
+	return stringEqualsWithNormalization(s.GetResourceType(), other.GetResourceType()) &&
+		stringEqualsWithNormalization(s.GetName(), other.GetName()) &&
+		stringEqualsWithNormalization(location, otherLocation) &&
+		localErr != nil &&
+		otherErr != nil
 }

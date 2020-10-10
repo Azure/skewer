@@ -30,7 +30,7 @@ func Test_WithLocation(t *testing.T) {
 			expect: &Cache{
 				config: &Config{
 					filter:   "location eq 'foo'",
-					Location: "foo",
+					location: "foo",
 				},
 			},
 		},
@@ -193,6 +193,7 @@ func Test_Cache_Get(t *testing.T) {
 				{
 					Name:         to.StringPtr("foo"),
 					ResourceType: to.StringPtr("bar"),
+					Locations:    &[]string{""},
 				},
 			},
 			found: true,
@@ -208,6 +209,7 @@ func Test_Cache_Get(t *testing.T) {
 				{
 					Name:         to.StringPtr("foo"),
 					ResourceType: to.StringPtr("bar"),
+					Locations:    &[]string{""},
 				},
 			},
 			found: true,
@@ -223,6 +225,7 @@ func Test_Cache_Get(t *testing.T) {
 				{
 					Name:         to.StringPtr("FoO"),
 					ResourceType: to.StringPtr("bar"),
+					Locations:    &[]string{""},
 				},
 			},
 			found: true,
@@ -245,20 +248,20 @@ func Test_Cache_Get(t *testing.T) {
 				data: Wrap(tc.have),
 			}
 
-			val, found := cache.Get(context.Background(), tc.sku, tc.resourceType, "")
-			if tc.found != found {
-				t.Errorf("expected %t but got %t when trying to Get resource with name %s and resourceType %s",
-					tc.found,
-					found,
-					tc.sku,
-					tc.resourceType,
-				)
-			} else if found {
+			val, err := cache.Get(context.Background(), tc.sku, tc.resourceType, "")
+			if tc.found {
+				if err != nil {
+					t.Errorf("expected success when trying to Get resource with name %s and resourceType %s, but got error: '%s'",
+						tc.sku,
+						tc.resourceType,
+						err,
+					)
+				}
 				if val.Name == nil {
 					t.Fatalf("expected name to be %s, but was nil", tc.sku)
 					return
 				}
-				if !stringEquals(*val.Name, tc.sku) {
+				if !stringEqualsWithNormalization(*val.Name, tc.sku) {
 					t.Fatalf("expected name to be %s, but was %s", tc.sku, *val.Name)
 				}
 				if val.ResourceType == nil {
@@ -267,6 +270,10 @@ func Test_Cache_Get(t *testing.T) {
 				}
 				if *val.ResourceType != tc.resourceType {
 					t.Fatalf("expected kind to be %s, but was %s", tc.resourceType, *val.ResourceType)
+				}
+			} else {
+				if err == nil {
+					t.Errorf("expected Get to fail with name %s and resourceType %s, but succeeded", tc.sku, tc.resourceType)
 				}
 			}
 		})
@@ -385,7 +392,8 @@ func Test_Cache_GetAvailabilityZones(t *testing.T) { //nolint:funlen
 					},
 					Restrictions: &[]compute.ResourceSkuRestrictions{
 						{
-							Type: compute.Zone,
+							Type:   compute.Zone,
+							Values: &[]string{"baz"},
 							RestrictionInfo: &compute.ResourceSkuRestrictionInfo{
 								Zones: &[]string{"1"},
 							},
@@ -534,7 +542,8 @@ func Test_Cache_GetVirtualMachineAvailabilityZonesForSize(t *testing.T) { //noli
 					},
 					Restrictions: &[]compute.ResourceSkuRestrictions{
 						{
-							Type: compute.Zone,
+							Type:   compute.Zone,
+							Values: &[]string{"baz"},
 							RestrictionInfo: &compute.ResourceSkuRestrictionInfo{
 								Zones: &[]string{"1"},
 							},

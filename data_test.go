@@ -100,11 +100,11 @@ func Test_Data(t *testing.T) {
 					errCapabilityValueNil := &ErrCapabilityValueParse{}
 					errCapabilityNotFound := &ErrCapabilityNotFound{}
 
-					sku, found := cache.Get(ctx, "standard_d4s_v3", VirtualMachines, "eastus")
-					if !found {
+					sku, err := cache.Get(ctx, "standard_d4s_v3", VirtualMachines, "eastus")
+					if err != nil {
 						t.Errorf("expected to find virtual machine sku standard_d4s_v3")
 					}
-					if name := sku.GetName(); !stringEquals(name, "standard_d4s_v3") {
+					if name := sku.GetName(); !stringEqualsWithNormalization(name, "standard_d4s_v3") {
 						t.Errorf("expected standard_d4s_v3 to have name standard_d4s_v3, got: '%s'", name)
 					}
 					if resourceType := sku.GetResourceType(); resourceType != VirtualMachines {
@@ -166,11 +166,11 @@ func Test_Data(t *testing.T) {
 					errCapabilityValueNil := &ErrCapabilityValueParse{}
 					errCapabilityNotFound := &ErrCapabilityNotFound{}
 
-					sku, found := cache.Get(ctx, "Standard_D2_v2", VirtualMachines, "eastus")
-					if !found {
+					sku, err := cache.Get(ctx, "Standard_D2_v2", VirtualMachines, "eastus")
+					if err != nil {
 						t.Errorf("expected to find virtual machine sku standard_d2_v2")
 					}
-					if name := sku.GetName(); !stringEquals(name, "standard_d2_v2") {
+					if name := sku.GetName(); !stringEqualsWithNormalization(name, "standard_d2_v2") {
 						t.Errorf("expected standard_d2_v2 to have name standard_d2_v2, got: '%s'", name)
 					}
 					if resourceType := sku.GetResourceType(); resourceType != VirtualMachines {
@@ -230,8 +230,8 @@ func Test_Data(t *testing.T) {
 				})
 
 				t.Run("standard_D13_v2_promo", func(t *testing.T) {
-					sku, found := cache.Get(ctx, "standard_D13_v2_promo", VirtualMachines, "eastus")
-					if !found {
+					sku, err := cache.Get(ctx, "standard_D13_v2_promo", VirtualMachines, "eastus")
+					if err != nil {
 						t.Errorf("expected to find virtual machine sku standard_D13_v2_promo")
 					}
 					if sku.IsAvailable("eastus") {

@@ -7,7 +7,7 @@ import (
 
 // Config contains configuration options for a cache.
 type Config struct {
-	Location string
+	location string
 	filter   string
 	client   client
 }
@@ -24,7 +24,7 @@ type Option func(c *Config) (*Config, error)
 // WithLocation is a functional option to filter skus by location
 func WithLocation(location string) Option {
 	return func(c *Config) (*Config, error) {
-		c.Location = location
+		c.location = location
 		c.filter = fmt.Sprintf("location eq '%s'", location)
 		return c, nil
 	}
@@ -149,18 +149,32 @@ func (c *Cache) refresh(ctx context.Context) error {
 }
 
 // Get returns the first matching resource of a given name and type in a location.
-func (c *Cache) Get(ctx context.Context, name, resourceType, location string) (SKU, bool) {
+func (c *Cache) Get(ctx context.Context, name, resourceType, location string) (SKU, error) {
 	filtered := Filter(c.data, []FilterFn{
 		ResourceTypeFilter(resourceType),
 		NameFilter(name),
-		LocationFilter(location),
 	}...)
 
-	if len(filtered) < 1 {
-		return SKU{}, false
+	if len(filtered) > 1 {
+		return SKU{}, fmt.Errorf("ErrMultipleSKUsMatch")
 	}
 
-	return filtered[0], true
+	if len(filtered) < 1 {
+		return SKU{}, fmt.Errorf("ErrSKUNotFound")
+	}
+
+	sku := filtered[0]
+
+	want, err := sku.GetLocation()
+	if err != nil {
+		return SKU{}, err
+	}
+
+	if stringEqualsWithNormalization(want, location) {
+		return sku, nil
+	}
+
+	return SKU{}, fmt.Errorf("ErrSKUNotFound")
 }
 
 // List returns all resource types for this location.
@@ -189,7 +203,7 @@ func (c *Cache) GetAvailabilityZones(ctx context.Context, filters ...FilterFn) [
 
 	Map(c.data, func(s *SKU) SKU {
 		if All(s, filters) {
-			for zone := range s.AvailabilityZones(c.config.Location) {
+			for zone := range s.AvailabilityZones(c.config.location) {
 				allZones[zone] = true
 			}
 		}
@@ -215,7 +229,7 @@ func (c *Config) Equal(other *Config) bool {
 	if c != nil && other == nil {
 		return false
 	}
-	return c.Location == other.Location &&
+	return c.location == other.location &&
 		c.filter == other.filter
 }
 
@@ -299,14 +313,22 @@ func ResourceTypeFilter(resourceType string) func(*SKU) bool {
 // NameFilter produces a filter function for the name of a resource sku.
 func NameFilter(name string) func(*SKU) bool {
 	return func(s *SKU) bool {
-		return stringEquals(s.GetName(), name)
+		return stringEqualsWithNormalization(s.GetName(), name)
 	}
 }
 
-// LocationFilter produces a filter function for the location of a resource sku.
-func LocationFilter(location string) func(*SKU) bool {
+// UnsafeLocationFilter produces a filter function for the location of a
+// resource sku.
+// This function dangerously ignores all SKUS without a properly
+// specified location. Use this only if you know what you are doing.
+func UnsafeLocationFilter(location string) func(*SKU) bool {
 	return func(s *SKU) bool {
-		return stringEquals(s.GetLocation(), location)
+		// TODO(ace): how to handle better?
+		want, err := s.GetLocation()
+		if err != nil {
+			return false
+		}
+		return stringEqualsWithNormalization(want, location)
 	}
 }
 
