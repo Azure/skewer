@@ -318,6 +318,13 @@ func NameFilter(name string) func(*SKU) bool {
 	}
 }
 
+// LocationFilter matches against a SKU listing the given location
+func LocationFilter(location string) func(*SKU) bool {
+	return func(s *SKU) bool {
+		return s.HasLocation(stringNormalize(location))
+	}
+}
+
 // UnsafeLocationFilter produces a filter function for the location of a
 // resource sku.
 // This function dangerously ignores all SKUS without a properly
