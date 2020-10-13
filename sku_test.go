@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/google/go-cmp/cmp"
 )
@@ -364,13 +364,13 @@ func Test_SKU_GetLocation(t *testing.T) {
 					"foo",
 				},
 			},
-			expectErr: "ErrMultipleSKULocations",
+			expectErr: "sku had multiple locations, refusing to disambiguate",
 		},
 		"should return error with no choices": {
 			sku: compute.ResourceSku{
 				Locations: &[]string{},
 			},
-			expectErr: "ErrNoSKULocations",
+			expectErr: "sku had no locations",
 		},
 	}
 

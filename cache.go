@@ -148,20 +148,52 @@ func (c *Cache) refresh(ctx context.Context) error {
 	return nil
 }
 
+// ErrMultipleSKUsMatch will be returned when multiple skus match a
+// fully qualified triple of resource type, location and name. This should usually not happen.
+type ErrMultipleSKUsMatch struct {
+	Name     string
+	Location string
+	Type     string
+}
+
+func (e *ErrMultipleSKUsMatch) Error() string {
+	return fmt.Sprintf("found multiple skus matching type: %s, name %s, and location %s", e.Type, e.Name, e.Location)
+}
+
+// ErrSKUNotFound will be returned when no skus match a fully qualified
+// triple of resource type, location and name. The SKU may not exist.
+type ErrSKUNotFound struct {
+	Name     string
+	Location string
+	Type     string
+}
+
+func (e *ErrSKUNotFound) Error() string {
+	return fmt.Sprintf("failed to find any skus matching type: %s, name %s, and location %s", e.Type, e.Name, e.Location)
+}
+
 // Get returns the first matching resource of a given name and type in a location.
 func (c *Cache) Get(ctx context.Context, name, resourceType, location string) (SKU, error) {
 	filtered := Filter(c.data, []FilterFn{
 		ResourceTypeFilter(resourceType),
 		NameFilter(name),
-		UnsafeLocationFilter(location),
+		LocationFilter(location),
 	}...)
 
 	if len(filtered) > 1 {
-		return SKU{}, fmt.Errorf("ErrMultipleSKUsMatch")
+		return SKU{}, &ErrMultipleSKUsMatch{
+			Name:     name,
+			Location: location,
+			Type:     resourceType,
+		}
 	}
 
 	if len(filtered) < 1 {
-		return SKU{}, fmt.Errorf("ErrSKUNotFound")
+		return SKU{}, &ErrSKUNotFound{
+			Name:     name,
+			Location: location,
+			Type:     resourceType,
+		}
 	}
 
 	sku := filtered[0]
@@ -175,7 +207,11 @@ func (c *Cache) Get(ctx context.Context, name, resourceType, location string) (S
 		return sku, nil
 	}
 
-	return SKU{}, fmt.Errorf("ErrSKUNotFound")
+	return SKU{}, &ErrSKUNotFound{
+		Name:     name,
+		Location: location,
+		Type:     resourceType,
+	}
 }
 
 // List returns all resource types for this location.
@@ -315,6 +351,13 @@ func ResourceTypeFilter(resourceType string) func(*SKU) bool {
 func NameFilter(name string) func(*SKU) bool {
 	return func(s *SKU) bool {
 		return stringEqualsWithNormalization(s.GetName(), name)
+	}
+}
+
+// LocationFilter matches against a SKU listing the given location
+func LocationFilter(location string) func(*SKU) bool {
+	return func(s *SKU) bool {
+		return s.HasLocation(stringNormalize(location))
 	}
 }
 

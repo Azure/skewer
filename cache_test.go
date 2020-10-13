@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -175,7 +175,7 @@ func Test_Map(t *testing.T) {
 	})
 }
 
-func Test_Cache_Get(t *testing.T) {
+func Test_Cache_Get(t *testing.T) { // nolint:funlen
 	cases := map[string]struct {
 		sku          string
 		resourceType string
@@ -271,10 +271,8 @@ func Test_Cache_Get(t *testing.T) {
 				if *val.ResourceType != tc.resourceType {
 					t.Fatalf("expected kind to be %s, but was %s", tc.resourceType, *val.ResourceType)
 				}
-			} else {
-				if err == nil {
-					t.Errorf("expected Get to fail with name %s and resourceType %s, but succeeded", tc.sku, tc.resourceType)
-				}
+			} else if err == nil {
+				t.Errorf("expected Get to fail with name %s and resourceType %s, but succeeded", tc.sku, tc.resourceType)
 			}
 		})
 	}

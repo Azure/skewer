@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/pkg/errors"
 )
 
@@ -255,16 +255,18 @@ func (s *SKU) IsAvailable(location string) bool {
 		return false
 	}
 	for _, locationInfo := range *s.LocationInfo {
-		if stringEqualsWithNormalization(*locationInfo.Location, location) {
-			if s.Restrictions != nil {
-				for _, restriction := range *s.Restrictions {
-					// Can't deploy to any zones in this location. We're done.
-					if restriction.Type == compute.Location {
-						return false
+		if locationInfo.Location != nil {
+			if stringEqualsWithNormalization(*locationInfo.Location, location) {
+				if s.Restrictions != nil {
+					for _, restriction := range *s.Restrictions {
+						// Can't deploy to any zones in this location. We're done.
+						if restriction.Type == compute.Location {
+							return false
+						}
 					}
 				}
+				return true
 			}
-			return true
 		}
 	}
 	return false
@@ -322,31 +324,79 @@ func (s *SKU) GetName() string {
 // GetLocation returns the location for a given SKU.
 func (s *SKU) GetLocation() (string, error) {
 	if s.Locations == nil {
-		return "", fmt.Errorf("ErrSKULocationNil")
+		return "", fmt.Errorf("sku had nil location array")
 	}
 
 	if len(*s.Locations) < 1 {
-		return "", fmt.Errorf("ErrNoSKULocations")
+		return "", fmt.Errorf("sku had no locations")
 	}
 
 	if len(*s.Locations) > 1 {
-		return "", fmt.Errorf("ErrMultipleSKULocations")
+		return "", fmt.Errorf("sku had multiple locations, refusing to disambiguate")
 	}
 
 	return (*s.Locations)[0], nil
 }
 
+// HasLocation returns true if the given sku exposes this region for deployment.
+func (s *SKU) HasLocation(location string) bool {
+	if s.Locations == nil {
+		return false
+	}
+
+	for _, candidate := range *s.Locations {
+		if stringEqualsWithNormalization(candidate, location) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// HasLocationRestriction returns true if the location is restricted for
+// this sku.
+func (s *SKU) HasLocationRestriction(location string) bool {
+	if s.Restrictions == nil {
+		return false
+	}
+
+	for _, restriction := range *s.Restrictions {
+		if restriction.Type != compute.Location {
+			continue
+		}
+		if restriction.Values == nil {
+			continue
+		}
+		for _, candidate := range *restriction.Values {
+			if stringEqualsWithNormalization(candidate, location) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 // AvailabilityZones returns the list of Availability Zones which have this resource SKU available and unrestricted.
-func (s *SKU) AvailabilityZones(location string) map[string]bool {
+func (s *SKU) AvailabilityZones(location string) map[string]bool { // nolint:gocyclo
+	if s.LocationInfo == nil {
+		return nil
+	}
+
 	// Use map for easy deletion and iteration
 	availableZones := make(map[string]bool)
 	restrictedZones := make(map[string]bool)
 
 	for _, locationInfo := range *s.LocationInfo {
+		if locationInfo.Location == nil {
+			continue
+		}
 		if stringEqualsWithNormalization(*locationInfo.Location, location) {
 			// add all zones
-			for _, zone := range *locationInfo.Zones {
-				availableZones[zone] = true
+			if locationInfo.Zones != nil {
+				for _, zone := range *locationInfo.Zones {
+					availableZones[zone] = true
+				}
 			}
 
 			// iterate restrictions, remove any restricted zones for this location
@@ -360,8 +410,8 @@ func (s *SKU) AvailabilityZones(location string) map[string]bool {
 									return nil
 								}
 
-								// remove restricted zones
-								if restriction.RestrictionInfo.Zones != nil {
+								if restriction.RestrictionInfo != nil && restriction.RestrictionInfo.Zones != nil {
+									// remove restricted zones
 									for _, zone := range *restriction.RestrictionInfo.Zones {
 										restrictedZones[zone] = true
 									}
