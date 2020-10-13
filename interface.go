@@ -3,7 +3,7 @@ package skewer
 import (
 	"context"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 )
 
 // ResourceClient is the required Azure client interface used to populate skewer's data.

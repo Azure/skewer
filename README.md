@@ -16,7 +16,7 @@ import (
     "fmt"
 
     "github.com/Azure/go-autorest/autorest/azure/auth"
-    "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+    "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 
     "github.com/Azure/skewer"
 )
