@@ -3,6 +3,7 @@ package skewer
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
@@ -104,7 +105,7 @@ func Test_Data(t *testing.T) {
 					if err != nil {
 						t.Errorf("expected to find virtual machine sku standard_d4s_v3")
 					}
-					if name := sku.GetName(); !stringEqualsWithNormalization(name, "standard_d4s_v3") {
+					if name := sku.GetName(); !strings.EqualFold(name, "standard_d4s_v3") {
 						t.Errorf("expected standard_d4s_v3 to have name standard_d4s_v3, got: '%s'", name)
 					}
 					if resourceType := sku.GetResourceType(); resourceType != VirtualMachines {
@@ -149,10 +150,10 @@ func Test_Data(t *testing.T) {
 					if sku.IsRestricted("westus2") {
 						t.Errorf("expected standard_d4s_v3 not to be restricted in westus2")
 					}
-					if isSupported, err := sku.HasCapabilityWithCapacity("MaxResourceVolumeMB", 32768); !isSupported || err != nil {
+					if isSupported, err := sku.HasCapabilityWithMinCapacity("MaxResourceVolumeMB", 32768); !isSupported || err != nil {
 						t.Errorf("expected standard_d4s_v3 to  fit 32GB temp disk, got '%t', error: %s", isSupported, err)
 					}
-					if isSupported, err := sku.HasCapabilityWithCapacity("MaxResourceVolumeMB", 32769); isSupported || err != nil {
+					if isSupported, err := sku.HasCapabilityWithMinCapacity("MaxResourceVolumeMB", 32769); isSupported || err != nil {
 						t.Errorf("expected standard_d4s_v3 not to fit 32GB  +1 byte temp disk, got '%t', error: %s", isSupported, err)
 					}
 					hasV1 := !sku.HasCapabilityWithSeparator(HyperVGenerations, "V1")
@@ -170,7 +171,7 @@ func Test_Data(t *testing.T) {
 					if err != nil {
 						t.Errorf("expected to find virtual machine sku standard_d2_v2")
 					}
-					if name := sku.GetName(); !stringEqualsWithNormalization(name, "standard_d2_v2") {
+					if name := sku.GetName(); !strings.EqualFold(name, "standard_d2_v2") {
 						t.Errorf("expected standard_d2_v2 to have name standard_d2_v2, got: '%s'", name)
 					}
 					if resourceType := sku.GetResourceType(); resourceType != VirtualMachines {
@@ -219,7 +220,7 @@ func Test_Data(t *testing.T) {
 					if sku.IsRestricted("westus2") {
 						t.Errorf("expected standard_d2_v2 not to be restricted in westus2")
 					}
-					if isSupported, err := sku.HasCapabilityWithCapacity("MemoryGB", 1000); isSupported || err != nil {
+					if isSupported, err := sku.HasCapabilityWithMinCapacity("MemoryGB", 1000); isSupported || err != nil {
 						t.Errorf("expected standard_d2_v2 not to have 1000GB of memory, got '%t', error: %s", isSupported, err)
 					}
 					hasV1 := !sku.HasCapabilityWithSeparator(HyperVGenerations, "V1")

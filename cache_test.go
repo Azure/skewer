@@ -2,6 +2,7 @@ package skewer
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
@@ -261,7 +262,7 @@ func Test_Cache_Get(t *testing.T) { // nolint:funlen
 					t.Fatalf("expected name to be %s, but was nil", tc.sku)
 					return
 				}
-				if !stringEqualsWithNormalization(*val.Name, tc.sku) {
+				if !strings.EqualFold(*val.Name, tc.sku) {
 					t.Fatalf("expected name to be %s, but was %s", tc.sku, *val.Name)
 				}
 				if val.ResourceType == nil {

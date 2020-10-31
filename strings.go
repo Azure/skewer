@@ -5,7 +5,7 @@ import (
 	"unicode"
 )
 
-func stringNormalize(input string) string {
+func normalizeLocation(input string) string {
 	var output string
 	for _, c := range input {
 		if !unicode.IsSpace(c) {
@@ -15,6 +15,6 @@ func stringNormalize(input string) string {
 	return strings.ToLower(output)
 }
 
-func stringEqualsWithNormalization(a, b string) bool {
-	return stringNormalize(a) == stringNormalize(b)
+func locationEquals(a, b string) bool {
+	return normalizeLocation(a) == normalizeLocation(b)
 }

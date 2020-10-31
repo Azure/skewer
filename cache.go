@@ -3,6 +3,7 @@ package skewer
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 // Config contains configuration options for a cache.
@@ -203,7 +204,7 @@ func (c *Cache) Get(ctx context.Context, name, resourceType, location string) (S
 		return SKU{}, err
 	}
 
-	if stringEqualsWithNormalization(want, location) {
+	if locationEquals(want, location) {
 		return sku, nil
 	}
 
@@ -350,14 +351,14 @@ func ResourceTypeFilter(resourceType string) func(*SKU) bool {
 // NameFilter produces a filter function for the name of a resource sku.
 func NameFilter(name string) func(*SKU) bool {
 	return func(s *SKU) bool {
-		return stringEqualsWithNormalization(s.GetName(), name)
+		return strings.EqualFold(s.GetName(), name)
 	}
 }
 
 // LocationFilter matches against a SKU listing the given location
 func LocationFilter(location string) func(*SKU) bool {
 	return func(s *SKU) bool {
-		return s.HasLocation(stringNormalize(location))
+		return s.HasLocation(normalizeLocation(location))
 	}
 }
 
@@ -372,7 +373,7 @@ func UnsafeLocationFilter(location string) func(*SKU) bool {
 		if err != nil {
 			return false
 		}
-		return stringEqualsWithNormalization(want, location)
+		return locationEquals(want, location)
 	}
 }
 

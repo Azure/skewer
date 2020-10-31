@@ -152,7 +152,7 @@ func Test_SKU_HasCapability(t *testing.T) {
 	}
 }
 
-func Test_SKU_HasCapabilityWithCapacity(t *testing.T) {
+func Test_SKU_HasCapabilityWithMinCapacity(t *testing.T) {
 	cases := map[string]struct {
 		sku        compute.ResourceSku
 		capability string
@@ -225,7 +225,7 @@ func Test_SKU_HasCapabilityWithCapacity(t *testing.T) {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
 			sku := SKU(tc.sku)
-			got, err := sku.HasCapabilityWithCapacity(tc.capability, tc.capacity)
+			got, err := sku.HasCapabilityWithMinCapacity(tc.capability, tc.capacity)
 			if tc.err != nil {
 				if diff := cmp.Diff(tc.err.Error(), err.Error()); diff != "" {
 					t.Error(diff)

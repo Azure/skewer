@@ -50,6 +50,15 @@ const (
 	CachedDiskBytes = "CachedDiskBytes"
 )
 
+const (
+	// HyperVGeneration1 identifies a sku which supports HyperV
+	// Generation 1.
+	HyperVGeneration1 = "V1"
+	// HyperVGeneration2 identifies a sku which supports HyperV
+	// Generation 2.
+	HyperVGeneration2 = "V2"
+)
+
 // ErrCapabilityNotFound will be returned when a capability could not be
 // found, even without a value.
 type ErrCapabilityNotFound struct {
@@ -92,18 +101,26 @@ func (s *SKU) Memory() (float64, error) {
 	return s.GetCapabilityFloatQuantity(MemoryGB)
 }
 
+// MaxCachedDiskBytes returns the number of bytes available for the
+// cache if it exists on this VM size.
 func (s *SKU) MaxCachedDiskBytes() (int64, error) {
 	return s.GetCapabilityIntegerQuantity(CachedDiskBytes)
 }
 
+// IsEncryptionAtHostSupported returns true when Encryption at Host is
+// supported for the VM size.
 func (s *SKU) IsEncryptionAtHostSupported() bool {
 	return s.HasCapability(EncryptionAtHost)
 }
 
+// IsUltraSSDAvailable returns true when a VM size has ultra SSD enabled
+// in at least 1 unrestricted zone.
 func (s *SKU) IsUltraSSDAvailable() bool {
 	return s.HasZonalCapability(UltraSSDAvailable)
 }
 
+// IsEphemeralOSDiskSupported returns true when the VM size supports
+// ephemeral OS.
 func (s *SKU) IsEphemeralOSDiskSupported() bool {
 	return s.HasCapability(EphemeralOSDisk)
 }
@@ -163,8 +180,8 @@ func (s *SKU) HasCapability(name string) bool {
 		return false
 	}
 	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && stringEqualsWithNormalization(*capability.Name, name) {
-			return capability.Value != nil && stringEqualsWithNormalization(*capability.Value, string(CapabilitySupported))
+		if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
+			return capability.Value != nil && strings.EqualFold(*capability.Value, string(CapabilitySupported))
 		}
 	}
 	return false
@@ -192,8 +209,8 @@ func (s *SKU) HasZonalCapability(name string) bool {
 				continue
 			}
 			for _, capability := range *zoneDetails.Capabilities {
-				if capability.Name != nil && stringEqualsWithNormalization(*capability.Name, name) {
-					if capability.Value != nil && stringEqualsWithNormalization(*capability.Value, string(CapabilitySupported)) {
+				if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
+					if capability.Value != nil && strings.EqualFold(*capability.Value, string(CapabilitySupported)) {
 						return true
 					}
 				}
@@ -212,14 +229,14 @@ func (s *SKU) HasCapabilityWithSeparator(name, value string) bool {
 		return false
 	}
 	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && stringEqualsWithNormalization(*capability.Name, name) {
-			return capability.Value != nil && strings.Contains(*capability.Value, value)
+		if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
+			return capability.Value != nil && strings.Contains(normalizeLocation(*capability.Value), normalizeLocation(value))
 		}
 	}
 	return false
 }
 
-// HasCapabilityWithCapacity returns true when the provided resource
+// HasCapabilityWithMinCapacity returns true when the provided resource
 // exposes a numeric capability and the maximum value exposed by that
 // capability exceeds the value requested by the user. Examples include
 // "MaxResourceVolumeMB", "OSVhdSizeMB", "vCPUs",
@@ -227,12 +244,12 @@ func (s *SKU) HasCapabilityWithSeparator(name, value string) bool {
 // "CombinedTempDiskAndCachedReadBytesPerSecond",
 // "CombinedTempDiskAndCachedWriteBytesPerSecond", "UncachedDiskIOPS",
 // and "UncachedDiskBytesPerSecond"
-func (s *SKU) HasCapabilityWithCapacity(name string, value int64) (bool, error) {
+func (s *SKU) HasCapabilityWithMinCapacity(name string, value int64) (bool, error) {
 	if s.Capabilities == nil {
 		return false, nil
 	}
 	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && stringEqualsWithNormalization(*capability.Name, name) {
+		if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
 			if capability.Value != nil {
 				intVal, err := strconv.ParseInt(*capability.Value, 10, 64)
 				if err != nil {
@@ -256,7 +273,7 @@ func (s *SKU) IsAvailable(location string) bool {
 	}
 	for _, locationInfo := range *s.LocationInfo {
 		if locationInfo.Location != nil {
-			if stringEqualsWithNormalization(*locationInfo.Location, location) {
+			if locationEquals(*locationInfo.Location, location) {
 				if s.Restrictions != nil {
 					for _, restriction := range *s.Restrictions {
 						// Can't deploy to any zones in this location. We're done.
@@ -284,7 +301,7 @@ func (s *SKU) IsRestricted(location string) bool {
 		}
 		for _, candidate := range *restriction.Values {
 			// Can't deploy in this location. We're done.
-			if stringEqualsWithNormalization(candidate, location) && restriction.Type == compute.Location {
+			if locationEquals(candidate, location) && restriction.Type == compute.Location {
 				return true
 			}
 		}
@@ -297,7 +314,7 @@ func (s *SKU) IsRestricted(location string) bool {
 // such as "virtualMachines", "disks", "availabilitySets", "snapshots",
 // and "hostGroups/hosts".
 func (s *SKU) IsResourceType(t string) bool {
-	return s.ResourceType != nil && stringEqualsWithNormalization(*s.ResourceType, t)
+	return s.ResourceType != nil && strings.EqualFold(*s.ResourceType, t)
 }
 
 // GetResourceType returns the name of this resource sku. It normalizes pointers
@@ -345,7 +362,7 @@ func (s *SKU) HasLocation(location string) bool {
 	}
 
 	for _, candidate := range *s.Locations {
-		if stringEqualsWithNormalization(candidate, location) {
+		if locationEquals(candidate, location) {
 			return true
 		}
 	}
@@ -368,7 +385,7 @@ func (s *SKU) HasLocationRestriction(location string) bool {
 			continue
 		}
 		for _, candidate := range *restriction.Values {
-			if stringEqualsWithNormalization(candidate, location) {
+			if locationEquals(candidate, location) {
 				return true
 			}
 		}
@@ -391,7 +408,7 @@ func (s *SKU) AvailabilityZones(location string) map[string]bool { // nolint:goc
 		if locationInfo.Location == nil {
 			continue
 		}
-		if stringEqualsWithNormalization(*locationInfo.Location, location) {
+		if locationEquals(*locationInfo.Location, location) {
 			// add all zones
 			if locationInfo.Zones != nil {
 				for _, zone := range *locationInfo.Zones {
@@ -404,7 +421,7 @@ func (s *SKU) AvailabilityZones(location string) map[string]bool { // nolint:goc
 				for _, restriction := range *s.Restrictions {
 					if restriction.Values != nil {
 						for _, candidate := range *restriction.Values {
-							if stringEqualsWithNormalization(candidate, location) {
+							if locationEquals(candidate, location) {
 								if restriction.Type == compute.Location {
 									// Can't deploy in this location. We're done.
 									return nil
@@ -435,9 +452,9 @@ func (s *SKU) AvailabilityZones(location string) map[string]bool { // nolint:goc
 func (s *SKU) Equal(other *SKU) bool {
 	location, localErr := s.GetLocation()
 	otherLocation, otherErr := s.GetLocation()
-	return stringEqualsWithNormalization(s.GetResourceType(), other.GetResourceType()) &&
-		stringEqualsWithNormalization(s.GetName(), other.GetName()) &&
-		stringEqualsWithNormalization(location, otherLocation) &&
+	return strings.EqualFold(s.GetResourceType(), other.GetResourceType()) &&
+		strings.EqualFold(s.GetName(), other.GetName()) &&
+		locationEquals(location, otherLocation) &&
 		localErr != nil &&
 		otherErr != nil
 }
