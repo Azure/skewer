@@ -132,8 +132,11 @@ func Test_Data(t *testing.T) {
 					if !sku.HasCapability(EphemeralOSDisk) {
 						t.Errorf("expected standard_d4s_v3 to support ephemeral os")
 					}
-					if !sku.HasCapability(AcceleratedNetworking) {
+					if !sku.IsAcceleratedNetworkingSupported() {
 						t.Errorf("expected standard_d4s_v3 to support accelerated networking")
+					}
+					if !sku.IsHyperVGen2Supported() {
+						t.Errorf("expected standard_d4s_v3 to support hyper v gen2")
 					}
 					if !sku.HasCapability(EncryptionAtHost) {
 						t.Errorf("expected standard_d4s_v3 to support encryption at host")
@@ -202,8 +205,11 @@ func Test_Data(t *testing.T) {
 					if sku.HasCapability(EphemeralOSDisk) {
 						t.Errorf("expected standard_d2_v2 not to support ephemeral os")
 					}
-					if !sku.HasCapability(AcceleratedNetworking) {
+					if !sku.IsAcceleratedNetworkingSupported() {
 						t.Errorf("expected standard_d2_v2 to support accelerated networking")
+					}
+					if sku.IsHyperVGen2Supported() {
+						t.Errorf("expected standard_d2_v2 not to support accelerated networking")
 					}
 					if sku.HasCapability(EncryptionAtHost) {
 						t.Errorf("expected standard_d2_v2 not to support encryption at host")
