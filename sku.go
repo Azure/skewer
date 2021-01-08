@@ -60,6 +60,12 @@ func (s *SKU) MaxCachedDiskBytes() (int64, error) {
 	return s.GetCapabilityIntegerQuantity(CachedDiskBytes)
 }
 
+// MaxResourceVolumeMB returns the number of bytes available for the
+// cache if it exists on this VM size.
+func (s *SKU) MaxResourceVolumeMB() (int64, error) {
+	return s.GetCapabilityIntegerQuantity(MaxResourceVolumeMB)
+}
+
 // IsEncryptionAtHostSupported returns true when Encryption at Host is
 // supported for the VM size.
 func (s *SKU) IsEncryptionAtHostSupported() bool {

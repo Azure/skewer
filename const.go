@@ -33,9 +33,12 @@ const (
 	// UltraSSDAvailable identifies the capability for ultra ssd
 	// enablement.
 	UltraSSDAvailable = "UltraSSDAvailable"
-	// CachedDiskBytes identifies the maximum size of the cach disk for
+	// CachedDiskBytes identifies the maximum size of the cache disk for
 	// a vm.
 	CachedDiskBytes = "CachedDiskBytes"
+	// MaxResourceVolumeMB identifies the maximum size of the temporary
+	// disk for a vm.
+	MaxResourceVolumeMB = "MaxResourceVolumeMB"
 )
 
 const (

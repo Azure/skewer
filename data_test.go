@@ -153,6 +153,9 @@ func Test_Data(t *testing.T) {
 					if sku.IsRestricted("westus2") {
 						t.Errorf("expected standard_d4s_v3 not to be restricted in westus2")
 					}
+					if quantity, err := sku.MaxResourceVolumeMB(); quantity != 32768 || errors.As(err, &errCapabilityNotFound) {
+						t.Errorf("expected standard_d4s_v3 to have 32768 MB of temporary disk, got value '%d' and error '%s'", quantity, err)
+					}
 					if isSupported, err := sku.HasCapabilityWithMinCapacity("MaxResourceVolumeMB", 32768); !isSupported || err != nil {
 						t.Errorf("expected standard_d4s_v3 to  fit 32GB temp disk, got '%t', error: %s", isSupported, err)
 					}
@@ -225,6 +228,9 @@ func Test_Data(t *testing.T) {
 					}
 					if sku.IsRestricted("westus2") {
 						t.Errorf("expected standard_d2_v2 not to be restricted in westus2")
+					}
+					if quantity, err := sku.MaxResourceVolumeMB(); quantity != 102400 || errors.As(err, &errCapabilityNotFound) {
+						t.Errorf("expected standard_d2_v2 to have 102400 MB of temporary disk, got value '%d' and error '%s'", quantity, err)
 					}
 					if isSupported, err := sku.HasCapabilityWithMinCapacity("MemoryGB", 1000); isSupported || err != nil {
 						t.Errorf("expected standard_d2_v2 not to have 1000GB of memory, got '%t', error: %s", isSupported, err)
