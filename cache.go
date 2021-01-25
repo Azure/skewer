@@ -197,22 +197,7 @@ func (c *Cache) Get(ctx context.Context, name, resourceType, location string) (S
 		}
 	}
 
-	sku := filtered[0]
-
-	want, err := sku.GetLocation()
-	if err != nil {
-		return SKU{}, err
-	}
-
-	if locationEquals(want, location) {
-		return sku, nil
-	}
-
-	return SKU{}, &ErrSKUNotFound{
-		Name:     name,
-		Location: location,
-		Type:     resourceType,
-	}
+	return filtered[0], nil
 }
 
 // List returns all resource types for this location.
