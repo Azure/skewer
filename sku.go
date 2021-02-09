@@ -207,9 +207,9 @@ func (s *SKU) HasCapabilityWithSeparator(name, value string) bool {
 	return false
 }
 
-// HasCapabilityWithMinCapacity returns true when the provided resource
-// exposes a numeric capability and the maximum value exposed by that
-// capability exceeds the value requested by the user. Examples include
+// HasCapabilityWithMinCapacity returns true when the SKU has a
+// capability with the requested name, and the value is greater than or
+// equal to the desired value.
 // "MaxResourceVolumeMB", "OSVhdSizeMB", "vCPUs",
 // "MemoryGB","MaxDataDiskCount", "CombinedTempDiskAndCachedIOPS",
 // "CombinedTempDiskAndCachedReadBytesPerSecond",
