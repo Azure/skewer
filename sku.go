@@ -72,8 +72,29 @@ func (s *SKU) IsEncryptionAtHostSupported() bool {
 	return s.HasCapability(EncryptionAtHost)
 }
 
+// From ultra SSD documentation
+//   https://docs.microsoft.com/en-us/azure/virtual-machines/disks-enable-ultra-ssd
+// Ultra SSD can be either supported on
+// 		- "Single VMs" without availability zone support, or
+// 		- On availability zones
+// So provide functions to test both cases
+
+// IsUltraSSDAvailableWithoutAvailabilityZone returns true when a VM size has ultra SSD enabled
+// in the region
+func (s *SKU) IsUltraSSDAvailableWithoutAvailabilityZone() bool {
+	return s.HasCapability(UltraSSDAvailable)
+}
+
+// IsUltraSSDAvailableInAvailabilityZone returns true when a VM size has ultra SSD enabled
+// in the given availability zone
+func (s *SKU) IsUltraSSDAvailableInAvailabilityZone(zone string) bool {
+	return s.HasCapabilityInZone(UltraSSDAvailable, zone)
+}
+
 // IsUltraSSDAvailable returns true when a VM size has ultra SSD enabled
 // in at least 1 unrestricted zone.
+//
+// Deprecated. Use either IsUltraSSDAvailableWithoutAvailabilityZone or IsUltraSSDAvailableInAvailabilityZone
 func (s *SKU) IsUltraSSDAvailable() bool {
 	return s.HasZonalCapability(UltraSSDAvailable)
 }
@@ -165,8 +186,7 @@ func (s *SKU) HasCapability(name string) bool {
 // feature. Currently, the only real scenario that appears to use
 // zoneDetails is UltraSSDAvailable which always lists all regions as
 // available.
-// TODO(ace): update this function signature/behavior if necessary to
-// account for per-zone availability.
+// For per zone capability check, use "HasCapabilityInZone"
 func (s *SKU) HasZonalCapability(name string) bool {
 	if s.LocationInfo == nil {
 		return false
@@ -179,6 +199,45 @@ func (s *SKU) HasZonalCapability(name string) bool {
 			if zoneDetails.Capabilities == nil {
 				continue
 			}
+			for _, capability := range *zoneDetails.Capabilities {
+				if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
+					if capability.Value != nil && strings.EqualFold(*capability.Value, string(CapabilitySupported)) {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
+// HasCapabilityInZone return true if the specified capability name is supported in the
+// specified zone.
+func (s *SKU) HasCapabilityInZone(name string, zone string) bool {
+	if s.LocationInfo == nil {
+		return false
+	}
+	for _, locationInfo := range *s.LocationInfo {
+		if locationInfo.ZoneDetails == nil {
+			continue
+		}
+		for _, zoneDetails := range *locationInfo.ZoneDetails {
+			if zoneDetails.Capabilities == nil {
+				continue
+			}
+			foundZone := false
+			if zoneDetails.Name != nil {
+				for _, zoneName := range *zoneDetails.Name {
+					if strings.EqualFold(zone, zoneName) {
+						foundZone = true
+						break
+					}
+				}
+			}
+			if !foundZone {
+				continue
+			}
+
 			for _, capability := range *zoneDetails.Capabilities {
 				if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
 					if capability.Value != nil && strings.EqualFold(*capability.Value, string(CapabilitySupported)) {
