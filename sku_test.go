@@ -395,3 +395,124 @@ func Test_SKU_GetLocation(t *testing.T) {
 }
 
 func Test_SKU_AvailabilityZones(t *testing.T) {}
+
+func Test_SKU_HasCapabilityInZone(t *testing.T) {
+	cases := map[string]struct {
+		sku        compute.ResourceSku
+		capability string
+		zone       string
+		expect     bool
+	}{
+		"should return false when capability is false": {
+			sku: compute.ResourceSku{
+				LocationInfo: &[]compute.ResourceSkuLocationInfo{
+					{
+						ZoneDetails: &[]compute.ResourceSkuZoneDetails{
+							{
+								Name: &[]string{"1", "3"},
+								Capabilities: &[]compute.ResourceSkuCapabilities{
+									{
+										Name:  to.StringPtr("foo"),
+										Value: to.StringPtr("False"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			capability: "foo",
+			zone:       "1",
+			expect:     false,
+		},
+		"should return false when zone doesn't match": {
+			sku: compute.ResourceSku{
+				LocationInfo: &[]compute.ResourceSkuLocationInfo{
+					{
+						ZoneDetails: &[]compute.ResourceSkuZoneDetails{
+							{
+								Name: &[]string{"1", "3"},
+								Capabilities: &[]compute.ResourceSkuCapabilities{
+									{
+										Name:  to.StringPtr("foo"),
+										Value: to.StringPtr("True"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			capability: "foo",
+			zone:       "2",
+			expect:     false,
+		},
+		"should not return true when the capability is not set in availability zone but set on sku capability": {
+			sku: compute.ResourceSku{
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{
+						Name:  to.StringPtr("foo"),
+						Value: to.StringPtr("True"),
+					},
+				},
+			},
+			capability: "foo",
+			zone:       "1",
+			expect:     false,
+		},
+		"should return true when capability and zone match": {
+			sku: compute.ResourceSku{
+				LocationInfo: &[]compute.ResourceSkuLocationInfo{
+					{
+						ZoneDetails: &[]compute.ResourceSkuZoneDetails{
+							{
+								Name: &[]string{"1", "3"},
+								Capabilities: &[]compute.ResourceSkuCapabilities{
+									{
+										Name:  to.StringPtr("foo"),
+										Value: to.StringPtr("True"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			capability: "foo",
+			zone:       "1",
+			expect:     true,
+		},
+		"should return true when capability and zone match for zone 3": {
+			sku: compute.ResourceSku{
+				LocationInfo: &[]compute.ResourceSkuLocationInfo{
+					{
+						ZoneDetails: &[]compute.ResourceSkuZoneDetails{
+							{
+								Name: &[]string{"1", "3"},
+								Capabilities: &[]compute.ResourceSkuCapabilities{
+									{
+										Name:  to.StringPtr("foo"),
+										Value: to.StringPtr("True"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			capability: "foo",
+			zone:       "3",
+			expect:     true,
+		},
+	}
+
+	for name, tc := range cases {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			sku := SKU(tc.sku)
+			if diff := cmp.Diff(tc.expect, sku.HasCapabilityInZone(tc.capability, tc.zone)); diff != "" {
+				t.Error(diff)
+			}
+		})
+	}
+}
