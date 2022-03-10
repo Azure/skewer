@@ -108,6 +108,9 @@ func Test_Data(t *testing.T) {
 					if name := sku.GetName(); !strings.EqualFold(name, "standard_d4s_v3") {
 						t.Errorf("expected standard_d4s_v3 to have name standard_d4s_v3, got: '%s'", name)
 					}
+					if skuFamily := sku.GetFamilyName(); !strings.EqualFold(skuFamily, "standardDSv3Family") {
+						t.Errorf("expected standard_d4s_v3 to have name standardDSv3Family, got: '%s'", skuFamily)
+					}
 					if resourceType := sku.GetResourceType(); resourceType != VirtualMachines {
 						t.Errorf("expected standard_d4s_v3 to have resourceType virtual machine, got: '%s'", resourceType)
 					}
@@ -179,6 +182,9 @@ func Test_Data(t *testing.T) {
 					}
 					if name := sku.GetName(); !strings.EqualFold(name, "standard_d2_v2") {
 						t.Errorf("expected standard_d2_v2 to have name standard_d2_v2, got: '%s'", name)
+					}
+					if skuFamily := sku.GetFamilyName(); !strings.EqualFold(skuFamily, "standardDv2Family") {
+						t.Errorf("expected standard_d2_v2 to have name standardDv2Family, got: '%s'", skuFamily)
 					}
 					if resourceType := sku.GetResourceType(); resourceType != VirtualMachines {
 						t.Errorf("expected standard_d2_v2 to have resourceType virtual machine, got: '%s'", resourceType)
