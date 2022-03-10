@@ -368,6 +368,17 @@ func (s *SKU) GetName() string {
 	return *s.Name
 }
 
+// GetFamilyName returns the family name of this resource sku. It normalizes pointers
+// to the empty string for comparison purposes. For example,
+// "standardDSv2Family" for a virtual machine.
+func (s *SKU) GetFamilyName() string {
+	if s.Family == nil {
+		return ""
+	}
+
+	return *s.Family
+}
+
 // GetLocation returns the location for a given SKU.
 func (s *SKU) GetLocation() (string, error) {
 	if s.Locations == nil {
