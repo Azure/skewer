@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-12-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -367,7 +367,7 @@ func Test_Cache_GetAvailabilityZones(t *testing.T) { //nolint:funlen
 					},
 					Restrictions: &[]compute.ResourceSkuRestrictions{
 						{
-							Type:   compute.Location,
+							Type:   compute.ResourceSkuRestrictionsTypeLocation,
 							Values: &[]string{"baz"},
 						},
 					},
@@ -391,7 +391,7 @@ func Test_Cache_GetAvailabilityZones(t *testing.T) { //nolint:funlen
 					},
 					Restrictions: &[]compute.ResourceSkuRestrictions{
 						{
-							Type:   compute.Zone,
+							Type:   compute.ResourceSkuRestrictionsTypeZone,
 							Values: &[]string{"baz"},
 							RestrictionInfo: &compute.ResourceSkuRestrictionInfo{
 								Zones: &[]string{"1"},
@@ -517,7 +517,7 @@ func Test_Cache_GetVirtualMachineAvailabilityZonesForSize(t *testing.T) { //noli
 					},
 					Restrictions: &[]compute.ResourceSkuRestrictions{
 						{
-							Type:   compute.Location,
+							Type:   compute.ResourceSkuRestrictionsTypeLocation,
 							Values: &[]string{"baz"},
 						},
 					},
@@ -541,7 +541,7 @@ func Test_Cache_GetVirtualMachineAvailabilityZonesForSize(t *testing.T) { //noli
 					},
 					Restrictions: &[]compute.ResourceSkuRestrictions{
 						{
-							Type:   compute.Zone,
+							Type:   compute.ResourceSkuRestrictionsTypeZone,
 							Values: &[]string{"baz"},
 							RestrictionInfo: &compute.ResourceSkuRestrictionInfo{
 								Zones: &[]string{"1"},

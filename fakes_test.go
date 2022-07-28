@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-12-01/compute"
 )
 
 // dataWrapper is a convenience wrapper for deserializing json testdata
@@ -125,7 +125,8 @@ func newSuccessfulFakeResourceProviderClient(skuLists [][]compute.ResourceSku) (
 // list to a page of values.
 func newFakeResourceSkusResultPage(skuLists [][]compute.ResourceSku) (compute.ResourceSkusResultPage, error) {
 	pages := newPageList(skuLists)
-	newPage := compute.NewResourceSkusResultPage(pages.next)
+	newPage := compute.NewResourceSkusResultPage(compute.ResourceSkusResult{}, pages.next)
+
 	if err := newPage.NextWithContext(context.Background()); err != nil {
 		return compute.ResourceSkusResultPage{}, err
 	}
@@ -137,7 +138,7 @@ func newFakeResourceSkusResultPage(skuLists [][]compute.ResourceSku) (compute.Re
 // list to a page of values.
 func newFakeResourceSkusResultIterator(skuLists [][]compute.ResourceSku) (compute.ResourceSkusResultIterator, error) {
 	pages := newPageList(skuLists)
-	newPage := compute.NewResourceSkusResultPage(pages.next)
+	newPage := compute.NewResourceSkusResultPage(compute.ResourceSkusResult{}, pages.next)
 	if err := newPage.NextWithContext(context.Background()); err != nil {
 		return compute.ResourceSkusResultIterator{}, err
 	}
