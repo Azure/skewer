@@ -3,7 +3,7 @@ package skewer
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 )
@@ -16,7 +16,7 @@ type dataWrapper struct {
 // newDataWrapper takes a path to a list of compute skus and parses them
 // to a dataWrapper for use in fake clients
 func newDataWrapper(path string) (*dataWrapper, error) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

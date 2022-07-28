@@ -396,6 +396,7 @@ func Test_SKU_GetLocation(t *testing.T) {
 
 func Test_SKU_AvailabilityZones(t *testing.T) {}
 
+//nolint:funlen
 func Test_SKU_HasCapabilityInZone(t *testing.T) {
 	cases := map[string]struct {
 		sku        compute.ResourceSku

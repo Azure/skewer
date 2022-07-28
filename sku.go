@@ -94,7 +94,7 @@ func (s *SKU) IsUltraSSDAvailableInAvailabilityZone(zone string) bool {
 // IsUltraSSDAvailable returns true when a VM size has ultra SSD enabled
 // in at least 1 unrestricted zone.
 //
-// Deprecated. Use either IsUltraSSDAvailableWithoutAvailabilityZone or IsUltraSSDAvailableInAvailabilityZone
+// Deprecated: Use either IsUltraSSDAvailableWithoutAvailabilityZone or IsUltraSSDAvailableInAvailabilityZone
 func (s *SKU) IsUltraSSDAvailable() bool {
 	return s.HasZonalCapability(UltraSSDAvailable)
 }
@@ -128,7 +128,7 @@ func (s *SKU) GetCapabilityIntegerQuantity(name string) (int64, error) {
 	for _, capability := range *s.Capabilities {
 		if capability.Name != nil && *capability.Name == name {
 			if capability.Value != nil {
-				intVal, err := strconv.ParseInt(*capability.Value, 10, 64)
+				intVal, err := strconv.ParseInt(*capability.Value, base10, base64)
 				if err != nil {
 					return -1, &ErrCapabilityValueParse{name, *capability.Value, err}
 				}
@@ -151,7 +151,7 @@ func (s *SKU) GetCapabilityFloatQuantity(name string) (float64, error) {
 	for _, capability := range *s.Capabilities {
 		if capability.Name != nil && *capability.Name == name {
 			if capability.Value != nil {
-				intVal, err := strconv.ParseFloat(*capability.Value, 64)
+				intVal, err := strconv.ParseFloat(*capability.Value, base64)
 				if err != nil {
 					return -1, &ErrCapabilityValueParse{name, *capability.Value, err}
 				}
@@ -213,7 +213,7 @@ func (s *SKU) HasZonalCapability(name string) bool {
 
 // HasCapabilityInZone return true if the specified capability name is supported in the
 // specified zone.
-func (s *SKU) HasCapabilityInZone(name string, zone string) bool {
+func (s *SKU) HasCapabilityInZone(name, zone string) bool {
 	if s.LocationInfo == nil {
 		return false
 	}
@@ -281,7 +281,7 @@ func (s *SKU) HasCapabilityWithMinCapacity(name string, value int64) (bool, erro
 	for _, capability := range *s.Capabilities {
 		if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
 			if capability.Value != nil {
-				intVal, err := strconv.ParseInt(*capability.Value, 10, 64)
+				intVal, err := strconv.ParseInt(*capability.Value, base10, base64)
 				if err != nil {
 					return false, errors.Wrapf(err, "failed to parse string '%s' as int64", *capability.Value)
 				}
