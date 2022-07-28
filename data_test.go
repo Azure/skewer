@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/sanity-io/litter"
 )
 
 var (
@@ -91,6 +92,16 @@ func Test_Data(t *testing.T) {
 				t.Error(err)
 			}
 			t.Run("virtual machines", func(t *testing.T) {
+				t.Run("match capability logic", func(t *testing.T) {
+					sku, err := cache.Get(ctx, "standard_d4s_v3", VirtualMachines, "eastus")
+					if err != nil {
+						t.Errorf("expected to find virtual machine sku standard_d4s_v3")
+					}
+
+					match := Match(ctx, cache, &sku, "eastus")
+					litter.Dump(match)
+				})
+
 				t.Run("expect 377 virtual machine skus", func(t *testing.T) {
 					if len(cache.GetVirtualMachines(ctx)) != expectedVirtualMachinesCount {
 						t.Errorf("expected %d virtual machine skus but found %d", expectedVirtualMachinesCount, len(cache.GetVirtualMachines(ctx)))
