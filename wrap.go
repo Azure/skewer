@@ -1,6 +1,6 @@
 package skewer
 
-import "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+import "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-12-01/compute"
 
 // Wrap takes an array of compute resource skus and wraps them into an
 // array of our richer type.
