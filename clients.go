@@ -3,7 +3,7 @@ package skewer
 import (
 	"context"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-12-01/compute" //nolint:staticcheck
 	"github.com/pkg/errors"
 )
 
@@ -33,6 +33,7 @@ func newWrappedResourceProviderClient(client ResourceProviderClient) *wrappedRes
 	return &wrappedResourceProviderClient{client}
 }
 
+//nolint:lll
 func (w *wrappedResourceProviderClient) ListComplete(ctx context.Context, filter, includeExtendedLocations string) (compute.ResourceSkusResultIterator, error) {
 	page, err := w.client.List(ctx, filter, includeExtendedLocations)
 	if err != nil {
