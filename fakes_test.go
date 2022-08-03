@@ -36,7 +36,7 @@ type fakeClient struct {
 	err  error
 }
 
-func (f *fakeClient) List(ctx context.Context, filter string) ([]compute.ResourceSku, error) {
+func (f *fakeClient) List(ctx context.Context, filter, includeExtendedLocations string) ([]compute.ResourceSku, error) {
 	if f.err != nil {
 		return nil, f.err
 	}
@@ -51,7 +51,7 @@ type fakeResourceClient struct {
 	err error
 }
 
-func (f *fakeResourceClient) ListComplete(ctx context.Context, filter string) (compute.ResourceSkusResultIterator, error) {
+func (f *fakeResourceClient) ListComplete(ctx context.Context, filter, includeExtendedLocations string) (compute.ResourceSkusResultIterator, error) {
 	if f.err != nil {
 		return compute.ResourceSkusResultIterator{}, f.err
 	}
@@ -90,7 +90,7 @@ type fakeResourceProviderClient struct {
 	err error
 }
 
-func (f *fakeResourceProviderClient) List(ctx context.Context, filter string) (compute.ResourceSkusResultPage, error) {
+func (f *fakeResourceProviderClient) List(ctx context.Context, filter, includeExtendedLocations string) (compute.ResourceSkusResultPage, error) {
 	if f.err != nil {
 		return compute.ResourceSkusResultPage{}, f.err
 	}
