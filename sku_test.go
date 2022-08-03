@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-12-01/compute" //nolint:staticcheck
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/google/go-cmp/cmp"
 )
@@ -396,6 +396,7 @@ func Test_SKU_GetLocation(t *testing.T) {
 
 func Test_SKU_AvailabilityZones(t *testing.T) {}
 
+//nolint:funlen
 func Test_SKU_HasCapabilityInZone(t *testing.T) {
 	cases := map[string]struct {
 		sku        compute.ResourceSku

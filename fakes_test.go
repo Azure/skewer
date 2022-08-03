@@ -3,9 +3,9 @@ package skewer
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-12-01/compute" //nolint:staticcheck
 )
 
 // dataWrapper is a convenience wrapper for deserializing json testdata
@@ -16,7 +16,7 @@ type dataWrapper struct {
 // newDataWrapper takes a path to a list of compute skus and parses them
 // to a dataWrapper for use in fake clients
 func newDataWrapper(path string) (*dataWrapper, error) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ type fakeClient struct {
 	err  error
 }
 
-func (f *fakeClient) List(ctx context.Context, filter string) ([]compute.ResourceSku, error) {
+func (f *fakeClient) List(ctx context.Context, filter, includeExtendedLocations string) ([]compute.ResourceSku, error) {
 	if f.err != nil {
 		return nil, f.err
 	}
@@ -51,7 +51,8 @@ type fakeResourceClient struct {
 	err error
 }
 
-func (f *fakeResourceClient) ListComplete(ctx context.Context, filter string) (compute.ResourceSkusResultIterator, error) {
+//nolint:lll
+func (f *fakeResourceClient) ListComplete(ctx context.Context, filter, includeExtendedLocations string) (compute.ResourceSkusResultIterator, error) {
 	if f.err != nil {
 		return compute.ResourceSkusResultIterator{}, f.err
 	}
@@ -90,7 +91,8 @@ type fakeResourceProviderClient struct {
 	err error
 }
 
-func (f *fakeResourceProviderClient) List(ctx context.Context, filter string) (compute.ResourceSkusResultPage, error) {
+//nolint:lll
+func (f *fakeResourceProviderClient) List(ctx context.Context, filter, includeExtendedLocations string) (compute.ResourceSkusResultPage, error) {
 	if f.err != nil {
 		return compute.ResourceSkusResultPage{}, f.err
 	}
