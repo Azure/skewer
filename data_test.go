@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-12-01/compute" //nolint:staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-03-01/compute" //nolint:staticcheck
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -16,7 +16,7 @@ var (
 	expectedAvailabilityZones    = []string{"1", "2", "3"}
 )
 
-// nolint:gocyclo,funlen
+//nolint:gocyclo,funlen
 func Test_Data(t *testing.T) {
 	dataWrapper, err := newDataWrapper("./testdata/eastus.json")
 	if err != nil {
@@ -202,7 +202,7 @@ func Test_Data(t *testing.T) {
 					}
 					if quantity, err := sku.GetCapabilityIntegerQuantity("PremiumIO"); quantity != -1 ||
 						!errors.As(err, &errCapabilityValueNil) ||
-						err.Error() != "PremiumIOCapabilityValueParse: failed to parse string 'False' as int64, error: 'strconv.ParseInt: parsing \"False\": invalid syntax'" { // nolint:lll
+						err.Error() != "PremiumIOCapabilityValueParse: failed to parse string 'False' as int64, error: 'strconv.ParseInt: parsing \"False\": invalid syntax'" { //nolint:lll
 						t.Errorf("expected standard_d2_v2 to fail parsing value for boolean premiumIO as int, got value '%d' and error '%s'", quantity, err)
 					}
 					if sku.HasZonalCapability(UltraSSDAvailable) {

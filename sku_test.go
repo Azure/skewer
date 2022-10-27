@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-12-01/compute" //nolint:staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-03-01/compute" //nolint:staticcheck
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/google/go-cmp/cmp"
 )
@@ -38,7 +38,7 @@ func Test_SKU_GetCapabilityQuantity(t *testing.T) {
 				},
 			},
 			capability: "",
-			err:        "CapabilityValueParse: failed to parse string 'False' as int64, error: 'strconv.ParseInt: parsing \"False\": invalid syntax'", // nolint:lll
+			err:        "CapabilityValueParse: failed to parse string 'False' as int64, error: 'strconv.ParseInt: parsing \"False\": invalid syntax'", //nolint:lll
 		},
 		"foo capability should return successfully with integer": {
 			sku: compute.ResourceSku{

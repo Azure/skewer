@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-12-01/compute" //nolint:staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-03-01/compute" //nolint:staticcheck
 	"github.com/pkg/errors"
 )
 
@@ -307,7 +307,7 @@ func (s *SKU) IsAvailable(location string) bool {
 				if s.Restrictions != nil {
 					for _, restriction := range *s.Restrictions {
 						// Can't deploy to any zones in this location. We're done.
-						if restriction.Type == compute.ResourceSkuRestrictionsTypeLocation {
+						if restriction.Type == compute.Location {
 							return false
 						}
 					}
@@ -331,7 +331,7 @@ func (s *SKU) IsRestricted(location string) bool {
 		}
 		for _, candidate := range *restriction.Values {
 			// Can't deploy in this location. We're done.
-			if locationEquals(candidate, location) && restriction.Type == compute.ResourceSkuRestrictionsTypeLocation {
+			if locationEquals(candidate, location) && restriction.Type == compute.Location {
 				return true
 			}
 		}
@@ -419,7 +419,7 @@ func (s *SKU) HasLocationRestriction(location string) bool {
 	}
 
 	for _, restriction := range *s.Restrictions {
-		if restriction.Type != compute.ResourceSkuRestrictionsTypeLocation {
+		if restriction.Type != compute.Location {
 			continue
 		}
 		if restriction.Values == nil {
@@ -436,7 +436,7 @@ func (s *SKU) HasLocationRestriction(location string) bool {
 }
 
 // AvailabilityZones returns the list of Availability Zones which have this resource SKU available and unrestricted.
-func (s *SKU) AvailabilityZones(location string) map[string]bool { // nolint:gocyclo
+func (s *SKU) AvailabilityZones(location string) map[string]bool { //nolint:gocyclo
 	if s.LocationInfo == nil {
 		return nil
 	}
@@ -463,7 +463,7 @@ func (s *SKU) AvailabilityZones(location string) map[string]bool { // nolint:goc
 					if restriction.Values != nil {
 						for _, candidate := range *restriction.Values {
 							if locationEquals(candidate, location) {
-								if restriction.Type == compute.ResourceSkuRestrictionsTypeLocation {
+								if restriction.Type == compute.Location {
 									// Can't deploy in this location. We're done.
 									return nil
 								}

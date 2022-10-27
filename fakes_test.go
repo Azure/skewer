@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2021-12-01/compute" //nolint:staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-03-01/compute" //nolint:staticcheck
 )
 
 // dataWrapper is a convenience wrapper for deserializing json testdata
@@ -59,7 +59,7 @@ func (f *fakeResourceClient) ListComplete(ctx context.Context, filter, includeEx
 	return f.res, nil
 }
 
-// nolint:deadcode,unused
+//nolint:deadcode,unused
 func newFailingFakeResourceClient(reterr error) *fakeResourceClient {
 	return &fakeResourceClient{
 		res: compute.ResourceSkusResultIterator{},
@@ -99,7 +99,7 @@ func (f *fakeResourceProviderClient) List(ctx context.Context, filter, includeEx
 	return f.res, nil
 }
 
-// nolint:deadcode,unused
+//nolint:deadcode,unused
 func newFailingFakeResourceProviderClient(reterr error) *fakeResourceProviderClient {
 	return &fakeResourceProviderClient{
 		res: compute.ResourceSkusResultPage{},
