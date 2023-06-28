@@ -116,6 +116,11 @@ func (s *SKU) IsAcceleratedNetworkingSupported() bool {
 	return s.HasCapability(AcceleratedNetworking)
 }
 
+// IsPremiumIO returns true when the VM size supports PremiumIO.
+func (s *SKU) IsPremiumIO() bool {
+	return s.HasCapability(CapabilityPremiumIO)
+}
+
 // IsHyperVGen1Supported returns true when the VM size supports
 // accelerated networking.
 func (s *SKU) IsHyperVGen1Supported() bool {

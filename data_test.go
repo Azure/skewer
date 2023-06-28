@@ -140,6 +140,9 @@ func Test_Data(t *testing.T) {
 					if !sku.IsAcceleratedNetworkingSupported() {
 						t.Errorf("expected standard_d4s_v3 to support accelerated networking")
 					}
+					if !sku.IsPremiumIO() {
+						t.Errorf("expected standard_d4s_v3 to support PremiumIO")
+					}
 					if !sku.IsHyperVGen1Supported() {
 						t.Errorf("expected standard_d4s_v3 to support hyper v gen1")
 					}
@@ -205,7 +208,7 @@ func Test_Data(t *testing.T) {
 						err.Error() != shouldNotBePresentCapabilityNotFoundErr {
 						t.Errorf("expected standard_d2_v2 not to have a non-existent capability, got value '%d' and error '%s'", quantity, err)
 					}
-					if quantity, err := sku.GetCapabilityIntegerQuantity("PremiumIO"); quantity != -1 ||
+					if quantity, err := sku.GetCapabilityIntegerQuantity(CapabilityPremiumIO); quantity != -1 ||
 						!errors.As(err, &errCapabilityValueNil) ||
 						err.Error() != premiumIOCapabilityValueParseErr {
 						t.Errorf("expected standard_d2_v2 to fail parsing value for boolean premiumIO as int, got value '%d' and error '%s'", quantity, err)
@@ -221,6 +224,9 @@ func Test_Data(t *testing.T) {
 					}
 					if !sku.IsAcceleratedNetworkingSupported() {
 						t.Errorf("expected standard_d2_v2 to support accelerated networking")
+					}
+					if sku.IsPremiumIO() {
+						t.Errorf("expected standard_d2_v2 to not support PremiumIO")
 					}
 					if !sku.IsHyperVGen1Supported() {
 						t.Errorf("expected standard_d2_v2 to support hyper v gen1")
@@ -287,7 +293,7 @@ func Test_Data(t *testing.T) {
 						err.Error() != shouldNotBePresentCapabilityNotFoundErr {
 						t.Errorf("expected standard_nv6 not to have a non-existent capability, got value '%d' and error '%s'", quantity, err)
 					}
-					if quantity, err := sku.GetCapabilityIntegerQuantity("PremiumIO"); quantity != -1 ||
+					if quantity, err := sku.GetCapabilityIntegerQuantity(CapabilityPremiumIO); quantity != -1 ||
 						!errors.As(err, &errCapabilityValueNil) ||
 						err.Error() != premiumIOCapabilityValueParseErr {
 						t.Errorf("expected standard_nv6 to fail parsing value for boolean premiumIO as int, got value '%d' and error '%s'", quantity, err)
@@ -303,6 +309,9 @@ func Test_Data(t *testing.T) {
 					}
 					if sku.IsAcceleratedNetworkingSupported() {
 						t.Errorf("expected standard_nv6 to not support accelerated networking")
+					}
+					if sku.IsPremiumIO() {
+						t.Errorf("expected standard_nv6 to not support PremiumIO")
 					}
 					if !sku.IsHyperVGen1Supported() {
 						t.Errorf("expected standard_nv6 to support hyper v gen1")

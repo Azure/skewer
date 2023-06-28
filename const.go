@@ -41,6 +41,8 @@ const (
 	// MaxResourceVolumeMB identifies the maximum size of the temporary
 	// disk for a vm.
 	MaxResourceVolumeMB = "MaxResourceVolumeMB"
+	// CapabilityPremiumIO identifies the capability for PremiumIO.
+	CapabilityPremiumIO = "PremiumIO"
 )
 
 const (
