@@ -24,6 +24,8 @@ const (
 	AcceleratedNetworking = "AcceleratedNetworkingEnabled"
 	// VCPUs identifies the capability for the number of vCPUS.
 	VCPUs = "vCPUs"
+	// GPUs identifies the capability for the number of GPUS.
+	GPUs = "GPUs"
 	// MemoryGB identifies the capability for memory capacity.
 	MemoryGB = "MemoryGB"
 	// HyperVGenerations identifies the hyper-v generations this vm sku supports.

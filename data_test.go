@@ -12,8 +12,10 @@ import (
 )
 
 var (
-	expectedVirtualMachinesCount = 377
-	expectedAvailabilityZones    = []string{"1", "2", "3"}
+	expectedVirtualMachinesCount            = 377
+	expectedAvailabilityZones               = []string{"1", "2", "3"}
+	shouldNotBePresentCapabilityNotFoundErr = "ShouldNotBePresentCapabilityNotFound"
+	premiumIOCapabilityValueParseErr        = "PremiumIOCapabilityValueParse: failed to parse string 'False' as int64, error: 'strconv.ParseInt: parsing \"False\": invalid syntax'" //nolint:lll
 )
 
 //nolint:gocyclo,funlen
@@ -138,6 +140,9 @@ func Test_Data(t *testing.T) {
 					if !sku.IsAcceleratedNetworkingSupported() {
 						t.Errorf("expected standard_d4s_v3 to support accelerated networking")
 					}
+					if !sku.IsHyperVGen1Supported() {
+						t.Errorf("expected standard_d4s_v3 to support hyper v gen1")
+					}
 					if !sku.IsHyperVGen2Supported() {
 						t.Errorf("expected standard_d4s_v3 to support hyper v gen2")
 					}
@@ -197,12 +202,12 @@ func Test_Data(t *testing.T) {
 					}
 					if quantity, err := sku.GetCapabilityIntegerQuantity("ShouldNotBePresent"); quantity != -1 ||
 						!errors.As(err, &errCapabilityNotFound) ||
-						err.Error() != "ShouldNotBePresentCapabilityNotFound" {
+						err.Error() != shouldNotBePresentCapabilityNotFoundErr {
 						t.Errorf("expected standard_d2_v2 not to have a non-existent capability, got value '%d' and error '%s'", quantity, err)
 					}
 					if quantity, err := sku.GetCapabilityIntegerQuantity("PremiumIO"); quantity != -1 ||
 						!errors.As(err, &errCapabilityValueNil) ||
-						err.Error() != "PremiumIOCapabilityValueParse: failed to parse string 'False' as int64, error: 'strconv.ParseInt: parsing \"False\": invalid syntax'" { //nolint:lll
+						err.Error() != premiumIOCapabilityValueParseErr {
 						t.Errorf("expected standard_d2_v2 to fail parsing value for boolean premiumIO as int, got value '%d' and error '%s'", quantity, err)
 					}
 					if sku.HasZonalCapability(UltraSSDAvailable) {
@@ -217,8 +222,11 @@ func Test_Data(t *testing.T) {
 					if !sku.IsAcceleratedNetworkingSupported() {
 						t.Errorf("expected standard_d2_v2 to support accelerated networking")
 					}
+					if !sku.IsHyperVGen1Supported() {
+						t.Errorf("expected standard_d2_v2 to support hyper v gen1")
+					}
 					if sku.IsHyperVGen2Supported() {
-						t.Errorf("expected standard_d2_v2 not to support accelerated networking")
+						t.Errorf("expected standard_d2_v2 not to support hyper v gen2")
 					}
 					if sku.HasCapability(EncryptionAtHost) {
 						t.Errorf("expected standard_d2_v2 not to support encryption at host")
@@ -245,6 +253,88 @@ func Test_Data(t *testing.T) {
 					hasV2 := sku.HasCapabilityWithSeparator(HyperVGenerations, "V2")
 					if hasV1 || hasV2 {
 						t.Errorf("expected standard_d2_v2 to support hyper-v generation v1 but not v2, got v1: '%t' , v2: '%t'", hasV1, hasV2)
+					}
+				})
+
+				t.Run("Standard_NV6", func(t *testing.T) {
+					errCapabilityValueNil := &ErrCapabilityValueParse{}
+					errCapabilityNotFound := &ErrCapabilityNotFound{}
+
+					sku, err := cache.Get(ctx, "Standard_NV6", VirtualMachines, "eastus")
+					if err != nil {
+						t.Errorf("expected to find virtual machine sku Standard_NV6")
+					}
+					if name := sku.GetName(); !strings.EqualFold(name, "standard_nv6") {
+						t.Errorf("expected standard_nv6 to have name standard_nv6, got: '%s'", name)
+					}
+					if skuFamily := sku.GetFamilyName(); !strings.EqualFold(skuFamily, "standardNVFamily") {
+						t.Errorf("expected standard_nv6 to have name standardNVFamily, got: '%s'", skuFamily)
+					}
+					if resourceType := sku.GetResourceType(); resourceType != VirtualMachines {
+						t.Errorf("expected standard_nv6 to have resourceType virtual machine, got: '%s'", resourceType)
+					}
+					if cpu, err := sku.VCPU(); cpu != 6 || err != nil {
+						t.Errorf("expected standard_nv6 to have 6 vCPUs and parse successfully, got value '%d' and error '%s'", cpu, err)
+					}
+					if cpu, err := sku.GPU(); cpu != 1 || err != nil {
+						t.Errorf("expected standard_nv6 to have 1 GPUs and parse successfully, got value '%d' and error '%s'", cpu, err)
+					}
+					if memory, err := sku.Memory(); memory != 56 || err != nil {
+						t.Errorf("expected standard_nv6 to have 56GB of memory and parse successfully, got value '%f' and error '%s'", memory, err)
+					}
+					if quantity, err := sku.GetCapabilityIntegerQuantity("ShouldNotBePresent"); quantity != -1 ||
+						!errors.As(err, &errCapabilityNotFound) ||
+						err.Error() != shouldNotBePresentCapabilityNotFoundErr {
+						t.Errorf("expected standard_nv6 not to have a non-existent capability, got value '%d' and error '%s'", quantity, err)
+					}
+					if quantity, err := sku.GetCapabilityIntegerQuantity("PremiumIO"); quantity != -1 ||
+						!errors.As(err, &errCapabilityValueNil) ||
+						err.Error() != premiumIOCapabilityValueParseErr {
+						t.Errorf("expected standard_nv6 to fail parsing value for boolean premiumIO as int, got value '%d' and error '%s'", quantity, err)
+					}
+					if sku.HasZonalCapability(UltraSSDAvailable) {
+						t.Errorf("expected standard_nv6 not to support ultra ssd")
+					}
+					if sku.HasZonalCapability("NotExistingCapability") {
+						t.Errorf("expected standard_nv6 not to support non-existent capability")
+					}
+					if sku.HasCapability(EphemeralOSDisk) {
+						t.Errorf("expected standard_nv6 not to support ephemeral os")
+					}
+					if sku.IsAcceleratedNetworkingSupported() {
+						t.Errorf("expected standard_nv6 to not support accelerated networking")
+					}
+					if !sku.IsHyperVGen1Supported() {
+						t.Errorf("expected standard_nv6 to support hyper v gen1")
+					}
+					if sku.IsHyperVGen2Supported() {
+						t.Errorf("expected standard_nv6 not to support hyper v gen2")
+					}
+					if sku.HasCapability(EncryptionAtHost) {
+						t.Errorf("expected standard_nv6 not to support encryption at host")
+					}
+					if !sku.IsAvailable("eastus") {
+						t.Errorf("expected standard_nv6 to be available in eastus")
+					}
+					if sku.IsRestricted("eastus") {
+						t.Errorf("expected standard_nv6 to be unrestricted in eastus")
+					}
+					if sku.IsAvailable("westus2") {
+						t.Errorf("expected standard_nv6 not to be available in westus2")
+					}
+					if sku.IsRestricted("westus2") {
+						t.Errorf("expected standard_nv6 not to be restricted in westus2")
+					}
+					if quantity, err := sku.MaxResourceVolumeMB(); quantity != 389120 || errors.As(err, &errCapabilityNotFound) {
+						t.Errorf("expected standard_nv6 to have 389120 MB of temporary disk, got value '%d' and error '%s'", quantity, err)
+					}
+					if isSupported, err := sku.HasCapabilityWithMinCapacity("MemoryGB", 1000); isSupported || err != nil {
+						t.Errorf("expected standard_nv6 not to have 1000GB of memory, got '%t', error: %s", isSupported, err)
+					}
+					hasV1 := !sku.HasCapabilityWithSeparator(HyperVGenerations, "V1")
+					hasV2 := sku.HasCapabilityWithSeparator(HyperVGenerations, "V2")
+					if hasV1 || hasV2 {
+						t.Errorf("expected standard_nv6 to support hyper-v generation v1 but not v2, got v1: '%t' , v2: '%t'", hasV1, hasV2)
 					}
 				})
 

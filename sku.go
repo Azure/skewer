@@ -49,6 +49,11 @@ func (s *SKU) VCPU() (int64, error) {
 	return s.GetCapabilityIntegerQuantity(VCPUs)
 }
 
+// GPU returns the number of GPU this SKU supports.
+func (s *SKU) GPU() (int64, error) {
+	return s.GetCapabilityIntegerQuantity(GPUs)
+}
+
 // Memory returns the amount of memory this SKU supports.
 func (s *SKU) Memory() (float64, error) {
 	return s.GetCapabilityFloatQuantity(MemoryGB)
@@ -109,6 +114,12 @@ func (s *SKU) IsEphemeralOSDiskSupported() bool {
 // accelerated networking.
 func (s *SKU) IsAcceleratedNetworkingSupported() bool {
 	return s.HasCapability(AcceleratedNetworking)
+}
+
+// IsHyperVGen1Supported returns true when the VM size supports
+// accelerated networking.
+func (s *SKU) IsHyperVGen1Supported() bool {
+	return s.HasCapabilityWithSeparator(HyperVGenerations, HyperVGeneration1)
 }
 
 // IsHyperVGen2Supported returns true when the VM size supports
