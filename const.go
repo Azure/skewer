@@ -15,6 +15,8 @@ const (
 	CapabilitySupported Supported = "True"
 	// CapabilityUnsupported is an enum value for the string "False" returned when a SKU does not support a binary capability.
 	CapabilityUnsupported Supported = "False"
+	// CapabilityCpuArchitectureType identifies the type of CPU architecture (x64,Arm64).
+	CapabilityCPUArchitectureType = "CpuArchitectureType"
 )
 
 const (

@@ -133,6 +133,12 @@ func (s *SKU) IsHyperVGen2Supported() bool {
 	return s.HasCapabilityWithSeparator(HyperVGenerations, HyperVGeneration2)
 }
 
+// GetCPUArchitectureType returns cpu arch for the VM size.
+// It errors if value is nil or not found.
+func (s *SKU) GetCPUArchitectureType() (string, error) {
+	return s.GetCapabilityStringQuantity(CapabilityCPUArchitectureType)
+}
+
 // GetCapabilityIntegerQuantity retrieves and parses the value of an
 // integer numeric capability with the provided name. It errors if the
 // capability is not found, the value was nil, or the value could not be
@@ -177,6 +183,23 @@ func (s *SKU) GetCapabilityFloatQuantity(name string) (float64, error) {
 		}
 	}
 	return -1, &ErrCapabilityNotFound{name}
+}
+
+// GetCapabilityStringQuantity retrieves string capability with the provided name.
+// It errors if the capability is not found or the value was nil
+func (s *SKU) GetCapabilityStringQuantity(name string) (string, error) {
+	if s.Capabilities == nil {
+		return "", &ErrCapabilityNotFound{name}
+	}
+	for _, capability := range *s.Capabilities {
+		if capability.Name != nil && *capability.Name == name {
+			if capability.Value != nil {
+				return *capability.Value, nil
+			}
+			return "", &ErrCapabilityValueNil{name}
+		}
+	}
+	return "", &ErrCapabilityNotFound{name}
 }
 
 // HasCapability return true for a capability which can be either
