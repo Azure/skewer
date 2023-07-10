@@ -10,7 +10,8 @@ function install() {
     mkdir -p "${GITHUB_WORKSPACE}/tmp/$APP"
     pushd "${GITHUB_WORKSPACE}/tmp/$APP"
     go mod init tmp
-    go install "$REPO"
+    go get "$REPO"
+    go install ./...
     cp "$(go env GOPATH)/bin/$APP" "${GITHUB_WORKSPACE}/bin/$APP"
     popd
     rm -rf "${GITHUB_WORKSPACE}/tmp/$APP"
