@@ -5,15 +5,15 @@ set -o nounset
 set -x
 
 function deps() {
-    mkdir -p "${GITHUB_WORKSPACE}/tmp/$APP"
-    pushd "${GITHUB_WORKSPACE}/tmp/$APP"
+    mkdir -p "${GITHUB_WORKSPACE}/tmp"
+    pushd "${GITHUB_WORKSPACE}/tmp"
     go mod init tmp
     go install github.com/axw/gocov/gocov
     go install github.com/AlekSi/gocov-xml
     cp "$(go env GOPATH)/bin/gocov" "${GITHUB_WORKSPACE}/bin/gocov"
     cp "$(go env GOPATH)/bin/gocov-xml" "${GITHUB_WORKSPACE}/bin/gocov-xml"
     popd
-    rm -rf "${GITHUB_WORKSPACE}/tmp/$APP"
+    rm -rf "${GITHUB_WORKSPACE}/tmp"
 }
 
 function init() {
