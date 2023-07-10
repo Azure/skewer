@@ -4,23 +4,16 @@ set -o pipefail
 set -o nounset
 set -x
 
-function install() {
-    REPO="$1"
-    APP="$2"
+function deps() {
     mkdir -p "${GITHUB_WORKSPACE}/tmp/$APP"
     pushd "${GITHUB_WORKSPACE}/tmp/$APP"
     go mod init tmp
-    go get "$REPO"
-    go install ./...
-    cp "$(go env GOPATH)/bin/$APP" "${GITHUB_WORKSPACE}/bin/$APP"
+    go install github.com/axw/gocov/gocov
+    go install github.com/AlekSi/gocov-xml
+    cp "$(go env GOPATH)/bin/gocov" "${GITHUB_WORKSPACE}/bin/gocov"
+    cp "$(go env GOPATH)/bin/gocov-xml" "${GITHUB_WORKSPACE}/bin/gocov-xml"
     popd
     rm -rf "${GITHUB_WORKSPACE}/tmp/$APP"
-    file "${GITHUB_WORKSPACE}/bin/$APP"
-}
-
-function deps() {
-    install github.com/axw/gocov/... gocov
-    install github.com/AlekSi/gocov-xml gocov-xml
 }
 
 function init() {
