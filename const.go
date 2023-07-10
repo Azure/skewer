@@ -15,8 +15,6 @@ const (
 	CapabilitySupported Supported = "True"
 	// CapabilityUnsupported is an enum value for the string "False" returned when a SKU does not support a binary capability.
 	CapabilityUnsupported Supported = "False"
-	// CapabilityCpuArchitectureType identifies the type of CPU architecture (x64,Arm64).
-	CapabilityCPUArchitectureType = "CpuArchitectureType"
 )
 
 const (
@@ -45,6 +43,14 @@ const (
 	MaxResourceVolumeMB = "MaxResourceVolumeMB"
 	// CapabilityPremiumIO identifies the capability for PremiumIO.
 	CapabilityPremiumIO = "PremiumIO"
+	// CapabilityCpuArchitectureType identifies the type of CPU architecture (x64,Arm64).
+	CapabilityCPUArchitectureType = "CpuArchitectureType"
+	// CapabilityTrustedLaunchDisabled identifes whether TrustedLaunch is disabled.
+	CapabilityTrustedLaunchDisabled = "TrustedLaunchDisabled"
+	// CapabilityConfidentialComputingType identifies the type of ConfidentialComputing.
+	CapabilityConfidentialComputingType = "ConfidentialComputingType"
+	// ConfidentialComputingTypeSNP denoted the "SNP" ConfidentialComputing.
+	ConfidentialComputingTypeSNP = "SNP"
 )
 
 const (

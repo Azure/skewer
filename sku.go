@@ -474,6 +474,25 @@ func (s *SKU) HasLocationRestriction(location string) bool {
 	return false
 }
 
+// IsConfidentialComputingTypeSNP return true if ConfidentialComputingType is SNP for this sku.
+func (s *SKU) IsConfidentialComputingTypeSNP() (bool, error) {
+	return s.HasCapabilityWithSeparator(CapabilityConfidentialComputingType, ConfidentialComputingTypeSNP), nil
+}
+
+// Official documentation for Trusted Launch states:
+// The response will be similar to the following form:
+// IsTrustedLaunchEnabled True in the output indicates that the Generation 2 VM size does not support Trusted launch.
+// If it's a Generation 2 VM size and TrustedLaunchDisabled is not part of the output,
+// it implies that Trusted launch is supported for that VM size.
+func (s *SKU) IsTrustedLaunchEnabled() (bool, error) {
+	if s.IsHyperVGen2Supported() {
+		if !s.HasCapabilityWithSeparator(CapabilityTrustedLaunchDisabled, "True") {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // AvailabilityZones returns the list of Availability Zones which have this resource SKU available and unrestricted.
 func (s *SKU) AvailabilityZones(location string) map[string]bool { //nolint:gocyclo
 	if s.LocationInfo == nil {
