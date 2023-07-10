@@ -8,8 +8,8 @@ function deps() {
     mkdir -p "${GITHUB_WORKSPACE}/tmp"
     pushd "${GITHUB_WORKSPACE}/tmp"
     go mod init tmp
-    go install github.com/axw/gocov/gocov
-    go install github.com/AlekSi/gocov-xml
+    go install github.com/axw/gocov/gocov@latest
+    go install github.com/AlekSi/gocov-xml@latest
     cp "$(go env GOPATH)/bin/gocov" "${GITHUB_WORKSPACE}/bin/gocov"
     cp "$(go env GOPATH)/bin/gocov-xml" "${GITHUB_WORKSPACE}/bin/gocov-xml"
     popd
