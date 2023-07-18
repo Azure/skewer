@@ -136,7 +136,7 @@ func (s *SKU) IsHyperVGen2Supported() bool {
 // GetCPUArchitectureType returns cpu arch for the VM size.
 // It errors if value is nil or not found.
 func (s *SKU) GetCPUArchitectureType() (string, error) {
-	return s.GetCapabilityStringQuantity(CapabilityCPUArchitectureType)
+	return s.GetCapabilityString(CapabilityCPUArchitectureType)
 }
 
 // GetCapabilityIntegerQuantity retrieves and parses the value of an
@@ -185,9 +185,9 @@ func (s *SKU) GetCapabilityFloatQuantity(name string) (float64, error) {
 	return -1, &ErrCapabilityNotFound{name}
 }
 
-// GetCapabilityStringQuantity retrieves string capability with the provided name.
+// GetCapabilityString retrieves string capability with the provided name.
 // It errors if the capability is not found or the value was nil
-func (s *SKU) GetCapabilityStringQuantity(name string) (string, error) {
+func (s *SKU) GetCapabilityString(name string) (string, error) {
 	if s.Capabilities == nil {
 		return "", &ErrCapabilityNotFound{name}
 	}
@@ -486,7 +486,7 @@ func (s *SKU) IsConfidentialComputingTypeSNP() (bool, error) {
 // it implies that Trusted launch is supported for that VM size.
 func (s *SKU) IsTrustedLaunchEnabled() (bool, error) {
 	if s.IsHyperVGen2Supported() {
-		if !s.HasCapabilityWithSeparator(CapabilityTrustedLaunchDisabled, "True") {
+		if !s.HasCapabilityWithSeparator(CapabilityTrustedLaunchDisabled, string(CapabilitySupported)) {
 			return true, nil
 		}
 	}
