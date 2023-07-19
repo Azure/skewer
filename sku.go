@@ -33,7 +33,7 @@ func (e *ErrCapabilityValueNil) Error() string {
 }
 
 // ErrCapabilityValueParse will be returned when a capability was found by
-// name but the value was nil.
+// name but there was error parsing the capability.
 type ErrCapabilityValueParse struct {
 	capability string
 	value      string
@@ -416,6 +416,21 @@ func (s *SKU) GetFamilyName() string {
 	}
 
 	return *s.Family
+}
+
+// GetSize returns the size of this resource sku. It normalizes pointers
+// to the empty string for comparison purposes. For example,
+// "M416ms_v2" for a virtual machine.
+func (s *SKU) GetSize() string {
+	if s.Size == nil {
+		return ""
+	}
+
+	return *s.Size
+}
+
+func (s *SKU) GetVMSize() (*VMSizeType, error) {
+	return getVMSize(s.GetSize())
 }
 
 // GetLocation returns the location for a given SKU.

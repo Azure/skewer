@@ -16,6 +16,7 @@ var (
 	expectedAvailabilityZones               = []string{"1", "2", "3"}
 	shouldNotBePresentCapabilityNotFoundErr = "ShouldNotBePresentCapabilityNotFound"
 	premiumIOCapabilityValueParseErr        = "PremiumIOCapabilityValueParse: failed to parse string 'False' as int64, error: 'strconv.ParseInt: parsing \"False\": invalid syntax'" //nolint:lll
+	x64ArchType                             = "x64"
 )
 
 //nolint:gocyclo,funlen
@@ -113,6 +114,9 @@ func Test_Data(t *testing.T) {
 					if skuFamily := sku.GetFamilyName(); !strings.EqualFold(skuFamily, "standardDSv3Family") {
 						t.Errorf("expected standard_d4s_v3 to have name standardDSv3Family, got: '%s'", skuFamily)
 					}
+					if skuSize := sku.GetSize(); !strings.EqualFold(skuSize, "d4s_v3") {
+						t.Errorf("expected standard_d4s_v3 to have name d4s_v3 size, got: '%s'", skuSize)
+					}
 					if resourceType := sku.GetResourceType(); resourceType != VirtualMachines {
 						t.Errorf("expected standard_d4s_v3 to have resourceType virtual machine, got: '%s'", resourceType)
 					}
@@ -140,7 +144,7 @@ func Test_Data(t *testing.T) {
 					if !sku.IsAcceleratedNetworkingSupported() {
 						t.Errorf("expected standard_d4s_v3 to support accelerated networking")
 					}
-					if cpuArch, err := sku.GetCPUArchitectureType(); err != nil || cpuArch != "x64" {
+					if cpuArch, err := sku.GetCPUArchitectureType(); err != nil || cpuArch != x64ArchType {
 						t.Errorf("expected standard_d4s_v3 to have x64 cpuArchitectureType")
 					}
 					if !sku.IsPremiumIO() {
@@ -197,6 +201,9 @@ func Test_Data(t *testing.T) {
 					if skuFamily := sku.GetFamilyName(); !strings.EqualFold(skuFamily, "standardDv2Family") {
 						t.Errorf("expected standard_d2_v2 to have name standardDv2Family, got: '%s'", skuFamily)
 					}
+					if skuSize := sku.GetSize(); !strings.EqualFold(skuSize, "d2_v2") {
+						t.Errorf("expected standard_d2_v2 to have name d2_v2 size, got: '%s'", skuSize)
+					}
 					if resourceType := sku.GetResourceType(); resourceType != VirtualMachines {
 						t.Errorf("expected standard_d2_v2 to have resourceType virtual machine, got: '%s'", resourceType)
 					}
@@ -228,7 +235,7 @@ func Test_Data(t *testing.T) {
 					if !sku.IsAcceleratedNetworkingSupported() {
 						t.Errorf("expected standard_d2_v2 to support accelerated networking")
 					}
-					if cpuArch, err := sku.GetCPUArchitectureType(); err != nil || cpuArch != "x64" {
+					if cpuArch, err := sku.GetCPUArchitectureType(); err != nil || cpuArch != x64ArchType {
 						t.Errorf("expected standard_d2_v2 to have x64 cpuArchitectureType")
 					}
 					if sku.IsPremiumIO() {
@@ -282,6 +289,9 @@ func Test_Data(t *testing.T) {
 					if skuFamily := sku.GetFamilyName(); !strings.EqualFold(skuFamily, "standardNVFamily") {
 						t.Errorf("expected standard_nv6 to have name standardNVFamily, got: '%s'", skuFamily)
 					}
+					if skuSize := sku.GetSize(); !strings.EqualFold(skuSize, "nv6") {
+						t.Errorf("expected standard_nv6 to have name nv6 size, got: '%s'", skuSize)
+					}
 					if resourceType := sku.GetResourceType(); resourceType != VirtualMachines {
 						t.Errorf("expected standard_nv6 to have resourceType virtual machine, got: '%s'", resourceType)
 					}
@@ -316,7 +326,7 @@ func Test_Data(t *testing.T) {
 					if sku.IsAcceleratedNetworkingSupported() {
 						t.Errorf("expected standard_nv6 to not support accelerated networking")
 					}
-					if cpuArch, err := sku.GetCPUArchitectureType(); err != nil || cpuArch != "x64" {
+					if cpuArch, err := sku.GetCPUArchitectureType(); err != nil || cpuArch != x64ArchType {
 						t.Errorf("expected standard_nv6 to have x64 cpuArchitectureType")
 					}
 					if sku.IsPremiumIO() {
