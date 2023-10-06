@@ -8,44 +8,48 @@ the existing Azure SDK for Go.
 This package requires an existing, authorized Azure client. Here is a
 complete example using the simplest methods.
 
-```go
+```go 
 package main
 
 import (
-    "context"
-    "fmt"
+	"context"
+	"fmt"
+	"os"
 
-    "github.com/Azure/go-autorest/autorest/azure/auth"
-    "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-08-01/compute" //nolint:staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-08-01/compute" //nolint:staticcheck
+	"github.com/Azure/go-autorest/autorest/azure/auth"
 
-    "github.com/Azure/skewer"
+	"github.com/Azure/skewer"
+)
+
+const (
+	SubscriptionID = "AZURE_SUBSCRIPTION_ID"
+	TenantID       = "AZURE_TENANT_ID"
+	ClientID       = "AZURE_CLIENT_ID"
+	ClientSecret   = "AZURE_CLIENT_SECRET"
 )
 
 func main() {
-    // Create an authorizer
-    authorizer, err := auth.NewAuthorizerFromEnvironment()
-    if err != nil {
-        fmt.Printf("failed to get authorizer: %s", err)
-        os.Exit(1)
-    }
+	os.Setenv(SubscriptionID, "subscriptionID")
+	os.Setenv(TenantID, "TenantID")
+	os.Setenv(ClientID, "AAD Client ID or AppID")
+	os.Setenv(ClientSecret, "AADClientSecretHere")
+	sub := os.Getenv(SubscriptionID)
+	authorizer, err := auth.NewAuthorizerFromEnvironment()
+	// Create a skus client
+	client := compute.NewResourceSkusClient(sub)
+	client.Authorizer = authorizer
 
-    // Create a skus client
-    client := compute.NewResourceSkusClient(sub)
-    client.Authorizer = authorizer
+	// or instantiate a cache for this package!
+	cache, err := skewer.NewCache(context.Background(), skewer.WithLocation("southcentralus"), skewer.WithResourceClient(client))
+	if err != nil {
+		fmt.Printf("failed to instantiate sku cache: %s", err)
+		os.Exit(1)
+	}
 
-    // Now we can use the client...
-    resourceSkuIterator, err := client.ListComplete(context.Background(), "eastus")
-    if err != nil {
-        fmt.Printf("failed to list skus: %s", err)
-        os.Exit(1)
-    }
-
-    // or instantiate a cache for this package!
-    cache, err := skewer.NewCache(context.Background(), skewer.WithLocation("eastus"), skewer.WithResourceClient(client))
-    if err != nil {
-        fmt.Printf("failed to instantiate sku cache: %s", err)
-        os.Exit(1)
-    }
+	for _, sku := range cache.List(context.Background()) {
+		fmt.Printf("sku: %s\n", sku.GetName())
+	}
 }
 ```
 
