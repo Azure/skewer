@@ -40,7 +40,6 @@ func main() {
 	client := compute.NewResourceSkusClient(sub)
 	client.Authorizer = authorizer
 
-	// or instantiate a cache for this package!
 	cache, err := skewer.NewCache(context.Background(), skewer.WithLocation("southcentralus"), skewer.WithResourceClient(client))
 	if err != nil {
 		fmt.Printf("failed to instantiate sku cache: %s", err)
