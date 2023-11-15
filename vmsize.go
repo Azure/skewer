@@ -17,6 +17,18 @@ var skuSizeScheme = regexp.MustCompile(
 
 // unParsableVMSizes map holds vmSize strings that cannot be easily parsed with skuSizeScheme.
 var unParsableVMSizes = map[string]VMSizeType{
+	"M96s_1_v3": {
+		Family:                      "M",
+		Subfamily:                   nil,
+		Cpus:                        "96",
+		CpusConstrained:             nil,
+		AdditiveFeatures:            []rune{'s'},
+		AcceleratorType:             nil,
+		ConfidentialChildCapability: false,
+		Version:                     "v3",
+		PromoVersion:                false,
+		Series:                      "Ms_v3",
+	},
 	"M416s_8_v2": {
 		Family:                      "M",
 		Subfamily:                   nil,
