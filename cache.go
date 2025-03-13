@@ -252,6 +252,32 @@ func (c *Config) Equal(other *Config) bool {
 		c.filter == other.filter
 }
 
+// Equal compares two caches.
+func (c *Cache) Equal(other *Cache) bool {
+	if c == nil && other == nil {
+		return true
+	}
+	if c == nil && other != nil {
+		return false
+	}
+	if c != nil && other == nil {
+		return false
+	}
+	if c != nil && other != nil {
+		return c.config.Equal(other.config)
+	}
+	if len(c.data) != len(other.data) {
+		return false
+	}
+	for i := range c.data {
+		// only compare location, type and name
+		if !c.data[i].Equal(&other.data[i]) {
+			return false
+		}
+	}
+	return true
+}
+
 // All returns true if the provided sku meets all provided conditions.
 func All(sku *SKU, conditions []FilterFn) bool {
 	for _, condition := range conditions {

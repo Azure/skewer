@@ -523,3 +523,14 @@ func (s *SKU) AvailabilityZones(location string) map[string]bool { //nolint:gocy
 
 	return availableZones
 }
+
+// Equal returns true when two skus have the same location, type, and name.
+func (s *SKU) Equal(other *SKU) bool {
+	location, localErr := s.GetLocation()
+	otherLocation, otherErr := other.GetLocation()
+	return strings.EqualFold(s.GetResourceType(), other.GetResourceType()) &&
+		strings.EqualFold(s.GetName(), other.GetName()) &&
+		locationEquals(location, otherLocation) &&
+		localErr != nil &&
+		otherErr != nil
+}
