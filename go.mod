@@ -8,6 +8,7 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/google/go-cmp v0.5.9
 	github.com/pkg/errors v0.9.1
+	k8s.io/utils v0.0.0-20240821151609-f90d01438635
 )
 
 require (
