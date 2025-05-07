@@ -518,7 +518,7 @@ func Test_SKU_HasCapabilityInZone(t *testing.T) {
 	}
 }
 
-// Test_SKU_Includes tests the SKU Includes method
+// Test_SKU_MemberOf tests the SKU MemberOf method
 func Test_SKU_Includes(t *testing.T) {
 	cases := map[string]struct {
 		skuList []SKU
@@ -562,7 +562,7 @@ func Test_SKU_Includes(t *testing.T) {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
 			sku := SKU(tc.sku)
-			if diff := cmp.Diff(tc.expect, sku.Includes(tc.skuList)); diff != "" {
+			if diff := cmp.Diff(tc.expect, sku.MemberOf(tc.skuList)); diff != "" {
 				t.Error(diff)
 			}
 		})

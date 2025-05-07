@@ -374,7 +374,7 @@ func UnsafeLocationFilter(location string) func(*SKU) bool {
 // IncludesFilter returns a FilterFn that checks if the SKU is included in the provided list of SKUs.
 func IncludesFilter(skuList []SKU) func(*SKU) bool {
 	return func(s *SKU) bool {
-		return s.Includes(skuList)
+		return s.MemberOf(skuList)
 	}
 }
 
