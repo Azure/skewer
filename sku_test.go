@@ -517,3 +517,54 @@ func Test_SKU_HasCapabilityInZone(t *testing.T) {
 		})
 	}
 }
+
+// Test_SKU_MemberOf tests the SKU MemberOf method
+func Test_SKU_Includes(t *testing.T) {
+	cases := map[string]struct {
+		skuList []SKU
+		sku     SKU
+		expect  bool
+	}{
+		"empty list should not include": {
+			skuList: []SKU{},
+			sku: SKU{
+				Name: to.StringPtr("foo"),
+			},
+			expect: false,
+		},
+		"missing name should not include": {
+			skuList: []SKU{
+				{
+					Name: to.StringPtr("foo"),
+				},
+			},
+			sku: SKU{
+				Name: to.StringPtr("bar"),
+			},
+			expect: false,
+		},
+		"name is included": {
+			skuList: []SKU{
+				{
+					Name: to.StringPtr("foo"),
+				},
+				{
+					Name: to.StringPtr("bar"),
+				},
+			},
+			sku: SKU{
+				Name: to.StringPtr("bar"),
+			},
+			expect: true,
+		},
+	}
+	for name, tc := range cases {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			sku := SKU(tc.sku)
+			if diff := cmp.Diff(tc.expect, sku.MemberOf(tc.skuList)); diff != "" {
+				t.Error(diff)
+			}
+		})
+	}
+}
