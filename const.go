@@ -35,6 +35,8 @@ const (
 	// UltraSSDAvailable identifies the capability for ultra ssd
 	// enablement.
 	UltraSSDAvailable = "UltraSSDAvailable"
+	// NvmeDiskSizeInMiB declares the disk size of the Nvme drive
+	NvmeDiskSizeInMiB = "NvmeDiskSizeInMiB"
 	// CachedDiskBytes identifies the maximum size of the cache disk for
 	// a vm.
 	CachedDiskBytes = "CachedDiskBytes"
