@@ -59,6 +59,11 @@ func (s *SKU) Memory() (float64, error) {
 	return s.GetCapabilityFloatQuantity(MemoryGB)
 }
 
+// NvmeDiskSizeInMiB returns the integer value for the disk size
+func (s *SKU) NvmeDiskSizeInMiB() (int64, error) {
+	return s.GetCapabilityIntegerQuantity(NvmeDiskSizeInMiB)
+}
+
 // MaxCachedDiskBytes returns the number of bytes available for the
 // cache if it exists on this VM size.
 func (s *SKU) MaxCachedDiskBytes() (int64, error) {
