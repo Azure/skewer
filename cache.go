@@ -70,27 +70,14 @@ func WithClient(client client) Option {
 	}
 }
 
-// WithResourceClient is a functional option to use a cache
-// backed by a ResourceClient.
-func WithResourceClient(client ResourceClient) Option {
+// WithResourceSKUsClient is a functional option to use a cache
+// backed by a ResourceSKUsClient.
+func WithResourceSKUsClient(client ResourceSKUsClient) Option {
 	return func(c *Config) (*Config, error) {
 		if c.client != nil {
 			return nil, &ErrClientNotNil{}
 		}
-		c.client = newWrappedResourceClient(client)
-		return c, nil
-	}
-}
-
-// WithResourceProviderClient is a functional option to use a cache
-// backed by a ResourceProviderClient.
-func WithResourceProviderClient(client ResourceProviderClient) Option {
-	return func(c *Config) (*Config, error) {
-		if c.client != nil {
-			return nil, &ErrClientNotNil{}
-		}
-		resourceClient := newWrappedResourceProviderClient(client)
-		c.client = newWrappedResourceClient(resourceClient)
+		c.client = newWrappedResourceSKUsClient(client)
 		return c, nil
 	}
 }
@@ -283,7 +270,8 @@ func (c *Cache) Equal(other *Cache) bool {
 		return false
 	}
 	for i := range c.data {
-		if c.data[i] != other.data[i] {
+		// only compare location, type and name
+		if !c.data[i].Equal(&other.data[i]) {
 			return false
 		}
 	}
