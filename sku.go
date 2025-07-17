@@ -430,7 +430,7 @@ func (s *SKU) GetSize() string {
 }
 
 func (s *SKU) GetVMSize() (*VMSizeType, error) {
-	return getVMSize(s.GetSize())
+	return GetVMSize(s.GetSize())
 }
 
 // GetLocation returns the location for a given SKU.
