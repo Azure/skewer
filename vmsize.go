@@ -55,8 +55,8 @@ func parseVMSize(vmSizeName string) ([]string, error) {
 	return parts, nil
 }
 
-// getVMSize is a helper function used by GetVMSize() in sku.go
-func getVMSize(vmSizeName string) (*VMSizeType, error) {
+// GetVMSize is a helper function used by GetVMSize() in sku.go
+func GetVMSize(vmSizeName string) (*VMSizeType, error) {
 	vmSize := VMSizeType{}
 
 	parts, err := parseVMSize(vmSizeName)
