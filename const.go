@@ -51,6 +51,12 @@ const (
 	CapabilityConfidentialComputingType = "ConfidentialComputingType"
 	// ConfidentialComputingTypeSNP denoted the "SNP" ConfidentialComputing.
 	ConfidentialComputingTypeSNP = "SNP"
+	// DiskControllerTypes identifies the disk controller types supported by the VM SKU.
+	DiskControllerTypes = "DiskControllerTypes"
+	// SupportedEphemeralOSDiskPlacements identifies supported ephemeral OS disk placements.
+	SupportedEphemeralOSDiskPlacements = "SupportedEphemeralOSDiskPlacements"
+	// NvmeDiskSizeInMiB identifies the NVMe disk size in MiB.
+	NvmeDiskSizeInMiB = "NvmeDiskSizeInMiB"
 )
 
 const (
@@ -60,6 +66,15 @@ const (
 	// HyperVGeneration2 identifies a sku which supports HyperV
 	// Generation 2.
 	HyperVGeneration2 = "V2"
+)
+
+const (
+	// DiskControllerSCSI identifies the SCSI disk controller type.
+	DiskControllerSCSI = "SCSI"
+	// DiskControllerNVMe identifies the NVMe disk controller type.
+	DiskControllerNVMe = "NVMe"
+	// EphemeralDiskPlacementNvme identifies NVMe disk placement for ephemeral OS disk.
+	EphemeralDiskPlacementNvme = "NvmeDisk"
 )
 
 const (
