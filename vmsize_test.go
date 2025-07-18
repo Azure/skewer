@@ -177,11 +177,11 @@ var testCases = []struct {
 	},
 }
 
-// Test_getSize tests the getSize() function.
-func Test_getVMsize(t *testing.T) {
+// Test_GetVMSize tests the GetVMSize() function.
+func Test_GetVMSize(t *testing.T) {
 	a := assert.New(t)
 	for _, test := range testCases {
-		vmSize, err := getVMSize(test.size)
+		vmSize, err := GetVMSize(test.size)
 		a.Equal(test.err, err)
 		if err != nil {
 			continue
