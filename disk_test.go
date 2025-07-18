@@ -18,12 +18,7 @@ func Test_SKU_HasSCSISupport(t *testing.T) {
 		},
 		"no disk controller capability should return true": {
 			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
-					{
-						Name:  to.StringPtr("vCPUs"),
-						Value: to.StringPtr("8"),
-					},
-				},
+				Capabilities: &[]compute.ResourceSkuCapabilities{},
 			},
 			expect: true,
 		},
@@ -84,12 +79,7 @@ func Test_SKU_HasNVMeSupport(t *testing.T) {
 		},
 		"no disk controller capability should return false": {
 			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
-					{
-						Name:  to.StringPtr("vCPUs"),
-						Value: to.StringPtr("8"),
-					},
-				},
+				Capabilities: &[]compute.ResourceSkuCapabilities{},
 			},
 			expect: false,
 		},

@@ -4,8 +4,7 @@ package skewer
 // If no disk controller types are declared, it assumes SCSI is supported for backward compatibility.
 func (s *SKU) HasSCSISupport() bool {
 	declaresSCSI := s.HasCapabilityWithSeparator(DiskControllerTypes, DiskControllerSCSI)
-	declaresNVMe := s.HasCapabilityWithSeparator(DiskControllerTypes, DiskControllerNVMe)
-	declaresNothing := !(declaresSCSI || declaresNVMe)
+	declaresNothing := !(declaresSCSI || s.HasNVMeSupport())
 	return declaresSCSI || declaresNothing
 }
 
