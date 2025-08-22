@@ -3,61 +3,36 @@ package skewer
 import (
 	"context"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-08-01/compute" //nolint:staticcheck
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v7"
 	"github.com/pkg/errors"
 )
 
-// wrappedResourceClient defines a wrapper for the typical Azure client
-// signature to collect all resource skus from the iterator returned by ListComplete().
-type wrappedResourceClient struct {
-	client ResourceClient
+// wrappedResourceSKUsClient defines a wrapper for the typical Azure track2 client
+// signature to collect all resource skus from the pager returned by NewListPager().
+type wrappedResourceSKUsClient struct {
+	client ResourceSKUsClient
 }
 
-func newWrappedResourceClient(client ResourceClient) *wrappedResourceClient {
-	return &wrappedResourceClient{client}
+func newWrappedResourceSKUsClient(client ResourceSKUsClient) *wrappedResourceSKUsClient {
+	return &wrappedResourceSKUsClient{client}
 }
 
-// List greedily traverses all returned sku pages
-func (w *wrappedResourceClient) List(ctx context.Context, filter, includeExtendedLocations string) ([]compute.ResourceSku, error) {
-	return iterate(ctx, filter, includeExtendedLocations, w.client.ListComplete)
-}
-
-// wrappedResourceProviderClient defines a wrapper for the typical Azure client
-// signature to collect all resource skus from the iterator returned by
-// List(). It only differs from wrappedResourceClient in signature.
-type wrappedResourceProviderClient struct {
-	client ResourceProviderClient
-}
-
-func newWrappedResourceProviderClient(client ResourceProviderClient) *wrappedResourceProviderClient {
-	return &wrappedResourceProviderClient{client}
-}
-
-//nolint:lll
-func (w *wrappedResourceProviderClient) ListComplete(ctx context.Context, filter, includeExtendedLocations string) (compute.ResourceSkusResultIterator, error) {
-	page, err := w.client.List(ctx, filter, includeExtendedLocations)
-	if err != nil {
-		return compute.ResourceSkusResultIterator{}, nil
+func (w *wrappedResourceSKUsClient) List(ctx context.Context, filter, includeExtendedLocations string) ([]*armcompute.ResourceSKU, error) {
+	options := &armcompute.ResourceSKUsClientListOptions{}
+	if filter != "" {
+		options.Filter = &filter
 	}
-	return compute.NewResourceSkusResultIterator(page), nil
-}
-
-type iterFunc func(context.Context, string, string) (compute.ResourceSkusResultIterator, error)
-
-// iterate invokes fn to get an iterator, then drains it into an array.
-func iterate(ctx context.Context, filter, includeExtendedLocations string, fn iterFunc) ([]compute.ResourceSku, error) {
-	iter, err := fn(ctx, filter, includeExtendedLocations)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not list resource skus")
+	if includeExtendedLocations != "" {
+		options.IncludeExtendedLocations = &includeExtendedLocations
 	}
-
-	var skus []compute.ResourceSku
-	for iter.NotDone() {
-		skus = append(skus, iter.Value())
-		if err := iter.NextWithContext(ctx); err != nil {
-			return nil, errors.Wrap(err, "could not iterate resource skus")
+	pager := w.client.NewListPager(options)
+	var skus []*armcompute.ResourceSKU
+	for pager.More() {
+		page, err := pager.NextPage(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not list resource skus")
 		}
+		skus = append(skus, page.Value...)
 	}
-
 	return skus, nil
 }

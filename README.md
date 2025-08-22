@@ -16,10 +16,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-08-01/compute" //nolint:staticcheck
-	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v7"
 
-	"github.com/Azure/skewer"
+	"github.com/Azure/skewer/v2"
 )
 
 const (
@@ -35,12 +35,19 @@ func main() {
 	os.Setenv(ClientID, "AAD Client ID or AppID")
 	os.Setenv(ClientSecret, "AADClientSecretHere")
 	sub := os.Getenv(SubscriptionID)
-	authorizer, err := auth.NewAuthorizerFromEnvironment()
-	// Create a skus client
-	client := compute.NewResourceSkusClient(sub)
-	client.Authorizer = authorizer
+	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	if err != nil {
+		fmt.Printf("failed to get credential: %s", err)
+		os.Exit(1)
+	}
+	
+	client, err := armcompute.NewResourceSKUsClient(sub, cred, nil)
+	if err != nil {
+		fmt.Printf("failed to get client: %s", err)
+		os.Exit(1)
+	}
 
-	cache, err := skewer.NewCache(context.Background(), skewer.WithLocation("southcentralus"), skewer.WithResourceClient(client))
+	cache, err := skewer.NewCache(context.Background(), skewer.WithLocation("eastus"), skewer.WithResourceSKUsClient(client))
 	if err != nil {
 		fmt.Printf("failed to instantiate sku cache: %s", err)
 		os.Exit(1)
@@ -54,9 +61,9 @@ func main() {
 
 Once we have a cache, we can query against its contents:
 ```go
-sku, found := cache.Get(context.Background, "standard_d4s_v3", skewer.VirtualMachines, "eastus")
-if !found {
-    return fmt.Errorf("expected to find virtual machine sku standard_d4s_v3")
+sku, err := cache.Get(context.Background(), "standard_d4s_v3", skewer.VirtualMachines, "eastus")
+if err != nil {
+	return fmt.Errorf("failed to find virtual machine sku standard_d4s_v3: %s", err)
 }
 
 // Check for capabilities
