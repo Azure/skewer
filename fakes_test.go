@@ -76,11 +76,11 @@ func (f *fakeResourceSKUsClient) NewListPager(options *armcompute.ResourceSKUsCl
 }
 
 // newSuccessfulFakeResourceSKUsClient takes a list of sku lists and returns a ResourceSKUsClient.
-func newSuccessfulFakeResourceSKUsClient(skuLists [][]*armcompute.ResourceSKU) (*fakeResourceSKUsClient, error) {
+func newSuccessfulFakeResourceSKUsClient(skuLists [][]*armcompute.ResourceSKU) *fakeResourceSKUsClient {
 	return &fakeResourceSKUsClient{
 		skus: skuLists,
 		err:  nil,
-	}, nil
+	}
 }
 
 // chunk divides a list into count pieces.

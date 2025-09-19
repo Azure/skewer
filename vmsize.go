@@ -49,7 +49,7 @@ type VMSizeType struct {
 // parseVMSize parses the VM size and returns the parts as a map.
 func parseVMSize(vmSizeName string) ([]string, error) {
 	parts := skuSizeScheme.FindStringSubmatch(vmSizeName)
-	if parts == nil || len(parts) < 10 {
+	if len(parts) < 10 {
 		return nil, fmt.Errorf("could not parse VM size %s", vmSizeName)
 	}
 	return parts, nil

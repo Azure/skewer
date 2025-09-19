@@ -8,7 +8,7 @@ func Wrap(in []*armcompute.ResourceSKU) []SKU {
 	out := make([]SKU, len(in))
 	for index, value := range in {
 		if value != nil {
-			out[index] = (SKU)(*value)
+			out[index] = SKU(*value)
 		}
 	}
 	return out

@@ -559,10 +559,8 @@ func Test_SKU_Includes(t *testing.T) {
 		},
 	}
 	for name, tc := range cases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
-			sku := SKU(tc.sku)
-			if diff := cmp.Diff(tc.expect, sku.MemberOf(tc.skuList)); diff != "" {
+			if diff := cmp.Diff(tc.expect, tc.sku.MemberOf(tc.skuList)); diff != "" {
 				t.Error(diff)
 			}
 		})

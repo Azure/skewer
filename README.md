@@ -22,25 +22,16 @@ import (
 	"github.com/Azure/skewer/v2"
 )
 
-const (
-	SubscriptionID = "AZURE_SUBSCRIPTION_ID"
-	TenantID       = "AZURE_TENANT_ID"
-	ClientID       = "AZURE_CLIENT_ID"
-	ClientSecret   = "AZURE_CLIENT_SECRET"
-)
-
 func main() {
-	os.Setenv(SubscriptionID, "subscriptionID")
-	os.Setenv(TenantID, "TenantID")
-	os.Setenv(ClientID, "AAD Client ID or AppID")
-	os.Setenv(ClientSecret, "AADClientSecretHere")
-	sub := os.Getenv(SubscriptionID)
+	// az login
+	// export AZURE_SUBSCRIPTION_ID="subscription-id"
+	sub := os.Getenv("AZURE_SUBSCRIPTION_ID")
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
 		fmt.Printf("failed to get credential: %s", err)
 		os.Exit(1)
 	}
-	
+
 	client, err := armcompute.NewResourceSKUsClient(sub, cred, nil)
 	if err != nil {
 		fmt.Printf("failed to get client: %s", err)
@@ -63,12 +54,12 @@ Once we have a cache, we can query against its contents:
 ```go
 sku, err := cache.Get(context.Background(), "standard_d4s_v3", skewer.VirtualMachines, "eastus")
 if err != nil {
-	return fmt.Errorf("failed to find virtual machine sku standard_d4s_v3: %s", err)
+    return fmt.Errorf("failed to find virtual machine sku standard_d4s_v3: %s", err)
 }
 
 // Check for capabilities
 if sku.IsEphemeralOSDiskSupported() {
-    fmt.Println("SKU %s supports ephemeral OS disk!", sku.GetName())
+    fmt.Printf("SKU %s supports ephemeral OS disk!\n", sku.GetName())
 }
 
 cpu, err := sku.VCPU()
@@ -81,7 +72,7 @@ if err != nil {
     return fmt.Errorf("failed to parse memory from sku: %s", err)
 }
 
-fmt.Printf("vm sku %s has %d vCPU cores and %.2fGi of memory", sku.GetName(), cpu, memory)
+fmt.Printf("vm sku %s has %d vCPU cores and %.2fGi of memory\n", sku.GetName(), cpu, memory)
 ```
 
 # Development

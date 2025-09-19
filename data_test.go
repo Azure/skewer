@@ -30,17 +30,9 @@ func Test_Data(t *testing.T) {
 		skus: dataWrapper.Value,
 	}
 
-	resourceSKUsClient, err := newSuccessfulFakeResourceSKUsClient([][]*armcompute.ResourceSKU{
-		dataWrapper.Value,
-	})
-	if err != nil {
-		t.Error(err)
-	}
+	resourceSKUsClient := newSuccessfulFakeResourceSKUsClient([][]*armcompute.ResourceSKU{dataWrapper.Value})
 
-	chunkedResourceSKUsClient, err := newSuccessfulFakeResourceSKUsClient(chunk(dataWrapper.Value, 10))
-	if err != nil {
-		t.Error(err)
-	}
+	chunkedResourceSKUsClient := newSuccessfulFakeResourceSKUsClient(chunk(dataWrapper.Value, 10))
 
 	ctx := context.Background()
 

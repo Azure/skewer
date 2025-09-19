@@ -270,7 +270,8 @@ func (c *Cache) Equal(other *Cache) bool {
 		return false
 	}
 	for i := range c.data {
-		// only compare location, type and name
+		// we can't use c.data[i] != other.data[i] since there are many pointers
+		// use Equal to compare location, type and name
 		if !c.data[i].Equal(&other.data[i]) {
 			return false
 		}
