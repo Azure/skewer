@@ -13,7 +13,7 @@ import (
 
 func main() {
 	// az login
-	// export AZURE_SUBSCRIPTION_ID="subscription-id"
+	// export AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 	sub := os.Getenv("AZURE_SUBSCRIPTION_ID")
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
@@ -27,7 +27,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	cache, err := skewer.NewCache(context.Background(), skewer.WithLocation("eastus"), skewer.WithResourceSKUsClient(client))
+	cache, err := skewer.NewCache(context.Background(), skewer.WithLocation("eastus"), skewer.WithResourceClient(client))
 	if err != nil {
 		fmt.Printf("failed to instantiate sku cache: %s", err)
 		os.Exit(1)

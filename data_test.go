@@ -30,23 +30,23 @@ func Test_Data(t *testing.T) {
 		skus: dataWrapper.Value,
 	}
 
-	resourceSKUsClient := newSuccessfulFakeResourceSKUsClient([][]*armcompute.ResourceSKU{dataWrapper.Value})
+	resourceClient := newSuccessfulFakeResourceClient([][]*armcompute.ResourceSKU{dataWrapper.Value})
 
-	chunkedResourceSKUsClient := newSuccessfulFakeResourceSKUsClient(chunk(dataWrapper.Value, 10))
+	chunkedResourceClient := newSuccessfulFakeResourceClient(chunk(dataWrapper.Value, 10))
 
 	ctx := context.Background()
 
 	cases := map[string]struct {
 		newCacheFunc NewCacheFunc
 	}{
-		"resourceSKUsClient": {
+		"resourceClient": {
 			newCacheFunc: func(_ context.Context, _ ...Option) (*Cache, error) {
-				return NewCache(ctx, WithResourceSKUsClient(resourceSKUsClient), WithLocation("eastus"))
+				return NewCache(ctx, WithResourceClient(resourceClient), WithLocation("eastus"))
 			},
 		},
-		"chunkedResourceSKUsClient": {
+		"chunkedResourceClient": {
 			newCacheFunc: func(_ context.Context, _ ...Option) (*Cache, error) {
-				return NewCache(ctx, WithResourceSKUsClient(chunkedResourceSKUsClient), WithLocation("eastus"))
+				return NewCache(ctx, WithResourceClient(chunkedResourceClient), WithLocation("eastus"))
 			},
 		},
 		"wrappedClient": {

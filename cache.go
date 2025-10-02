@@ -70,14 +70,14 @@ func WithClient(client client) Option {
 	}
 }
 
-// WithResourceSKUsClient is a functional option to use a cache
-// backed by a ResourceSKUsClient.
-func WithResourceSKUsClient(client ResourceSKUsClient) Option {
+// WithResourceClient is a functional option to use a cache
+// backed by a ResourceClient.
+func WithResourceClient(client ResourceClient) Option {
 	return func(c *Config) (*Config, error) {
 		if c.client != nil {
 			return nil, &ErrClientNotNil{}
 		}
-		c.client = newWrappedResourceSKUsClient(client)
+		c.client = newWrappedResourceClient(client)
 		return c, nil
 	}
 }

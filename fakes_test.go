@@ -46,40 +46,53 @@ func (f *fakeClient) List(ctx context.Context, filter, includeExtendedLocations 
 	return f.skus, nil
 }
 
-// fakeResourceSKUsClient is a fake client for the real Azure types.
-type fakeResourceSKUsClient struct {
-	skus [][]*armcompute.ResourceSKU
-	err  error
+// fakeResourceClient is a fake client for the real Azure types. It
+// returns a result iterator and can test against arbitrary sequences of
+// return pages, injecting failure.
+type fakeResourceClient struct {
+	skuLists [][]*armcompute.ResourceSKU
+	err      error
 }
 
-var _ ResourceSKUsClient = &fakeResourceSKUsClient{}
-
-func (f *fakeResourceSKUsClient) NewListPager(options *armcompute.ResourceSKUsClientListOptions) *runtime.Pager[armcompute.ResourceSKUsClientListResponse] {
+func (f *fakeResourceClient) NewListPager(options *armcompute.ResourceSKUsClientListOptions) *runtime.Pager[armcompute.ResourceSKUsClientListResponse] {
 	pageCount := 0
 	pager := runtime.NewPager(runtime.PagingHandler[armcompute.ResourceSKUsClientListResponse]{
 		More: func(current armcompute.ResourceSKUsClientListResponse) bool {
-			return pageCount < len(f.skus)
+			return pageCount < len(f.skuLists)
 		},
 		Fetcher: func(ctx context.Context, current *armcompute.ResourceSKUsClientListResponse) (armcompute.ResourceSKUsClientListResponse, error) {
-			if pageCount >= len(f.skus) {
+			if f.err != nil {
 				return armcompute.ResourceSKUsClientListResponse{}, f.err
+			}
+			if pageCount >= len(f.skuLists) {
+				return armcompute.ResourceSKUsClientListResponse{}, nil
 			}
 			pageCount += 1
 			return armcompute.ResourceSKUsClientListResponse{
 				ResourceSKUsResult: armcompute.ResourceSKUsResult{
-					Value: f.skus[pageCount-1],
+					Value: f.skuLists[pageCount-1],
 				},
-			}, f.err
+			}, nil
 		},
 	})
 	return pager
 }
 
-// newSuccessfulFakeResourceSKUsClient takes a list of sku lists and returns a ResourceSKUsClient.
-func newSuccessfulFakeResourceSKUsClient(skuLists [][]*armcompute.ResourceSKU) *fakeResourceSKUsClient {
-	return &fakeResourceSKUsClient{
-		skus: skuLists,
-		err:  nil,
+//nolint:deadcode,unused
+func newFailingFakeResourceClient(reterr error) *fakeResourceClient {
+	return &fakeResourceClient{
+		skuLists: [][]*armcompute.ResourceSKU{{}},
+		err:      reterr,
+	}
+}
+
+// newSuccessfulFakeResourceClient takes a list of sku lists and returns
+// a ResourceClient which iterates over all of them, mapping each sku
+// list to a page of values.
+func newSuccessfulFakeResourceClient(skuLists [][]*armcompute.ResourceSKU) *fakeResourceClient {
+	return &fakeResourceClient{
+		skuLists: skuLists,
+		err:      nil,
 	}
 }
 
