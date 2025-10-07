@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-08-01/compute" //nolint:staticcheck
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v7"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -30,29 +30,9 @@ func Test_Data(t *testing.T) {
 		skus: dataWrapper.Value,
 	}
 
-	resourceClient, err := newSuccessfulFakeResourceClient([][]compute.ResourceSku{
-		dataWrapper.Value,
-	})
-	if err != nil {
-		t.Error(err)
-	}
+	resourceClient := newSuccessfulFakeResourceClient([][]*armcompute.ResourceSKU{dataWrapper.Value})
 
-	chunkedResourceClient, err := newSuccessfulFakeResourceClient(chunk(dataWrapper.Value, 10))
-	if err != nil {
-		t.Error(err)
-	}
-
-	resourceProviderClient, err := newSuccessfulFakeResourceProviderClient([][]compute.ResourceSku{
-		dataWrapper.Value,
-	})
-	if err != nil {
-		t.Error(err)
-	}
-
-	chunkedResourceProviderClient, err := newSuccessfulFakeResourceProviderClient(chunk(dataWrapper.Value, 10))
-	if err != nil {
-		t.Error(err)
-	}
+	chunkedResourceClient := newSuccessfulFakeResourceClient(chunk(dataWrapper.Value, 10))
 
 	ctx := context.Background()
 
@@ -67,16 +47,6 @@ func Test_Data(t *testing.T) {
 		"chunkedResourceClient": {
 			newCacheFunc: func(_ context.Context, _ ...Option) (*Cache, error) {
 				return NewCache(ctx, WithResourceClient(chunkedResourceClient), WithLocation("eastus"))
-			},
-		},
-		"resourceProviderClient": {
-			newCacheFunc: func(_ context.Context, _ ...Option) (*Cache, error) {
-				return NewCache(ctx, WithResourceProviderClient(resourceProviderClient), WithLocation("eastus"))
-			},
-		},
-		"chunkedResourceProviderClient": {
-			newCacheFunc: func(_ context.Context, _ ...Option) (*Cache, error) {
-				return NewCache(ctx, WithResourceProviderClient(chunkedResourceProviderClient), WithLocation("eastus"))
 			},
 		},
 		"wrappedClient": {

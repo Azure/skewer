@@ -82,19 +82,6 @@ func WithResourceClient(client ResourceClient) Option {
 	}
 }
 
-// WithResourceProviderClient is a functional option to use a cache
-// backed by a ResourceProviderClient.
-func WithResourceProviderClient(client ResourceProviderClient) Option {
-	return func(c *Config) (*Config, error) {
-		if c.client != nil {
-			return nil, &ErrClientNotNil{}
-		}
-		resourceClient := newWrappedResourceProviderClient(client)
-		c.client = newWrappedResourceClient(resourceClient)
-		return c, nil
-	}
-}
-
 // NewCacheFunc describes the live cache instantiation signature. Used
 // for testing.
 type NewCacheFunc func(ctx context.Context, opts ...Option) (*Cache, error)
@@ -283,7 +270,9 @@ func (c *Cache) Equal(other *Cache) bool {
 		return false
 	}
 	for i := range c.data {
-		if c.data[i] != other.data[i] {
+		// we can't use c.data[i] != other.data[i] since there are many pointers
+		// use Equal to compare location, type and name
+		if !c.data[i].Equal(&other.data[i]) {
 			return false
 		}
 	}

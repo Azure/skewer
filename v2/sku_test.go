@@ -4,36 +4,36 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-08-01/compute" //nolint:staticcheck
-	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v7"
 	"github.com/google/go-cmp/cmp"
 )
 
 func Test_SKU_GetCapabilityQuantity(t *testing.T) {
 	cases := map[string]struct {
-		sku        compute.ResourceSku
+		sku        armcompute.ResourceSKU
 		capability string
 		expect     int64
 		err        string
 	}{
 		"empty capability list should return capability not found": {
-			sku:        compute.ResourceSku{},
+			sku:        armcompute.ResourceSKU{},
 			capability: "",
 			err:        (&ErrCapabilityNotFound{""}).Error(),
 		},
 		"empty capability should not match sku with empty list of capabilities": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{},
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{},
 			},
 			capability: "",
 			err:        (&ErrCapabilityNotFound{""}).Error(),
 		},
 		"empty capability should fail to parse when not integer": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(""),
-						Value: to.StringPtr("False"),
+						Name:  to.Ptr(""),
+						Value: to.Ptr("False"),
 					},
 				},
 			},
@@ -41,11 +41,11 @@ func Test_SKU_GetCapabilityQuantity(t *testing.T) {
 			err:        "CapabilityValueParse: failed to parse string 'False' as int64, error: 'strconv.ParseInt: parsing \"False\": invalid syntax'", //nolint:lll
 		},
 		"foo capability should return successfully with integer": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr("foo"),
-						Value: to.StringPtr("100"),
+						Name:  to.Ptr("foo"),
+						Value: to.Ptr("100"),
 					},
 				},
 			},
@@ -80,59 +80,59 @@ func Test_SKU_GetCapabilityQuantity(t *testing.T) {
 
 func Test_SKU_HasCapability(t *testing.T) {
 	cases := map[string]struct {
-		sku        compute.ResourceSku
+		sku        armcompute.ResourceSKU
 		capability string
 		expect     bool
 	}{
 		"empty capability should not match empty sku": {
-			sku:        compute.ResourceSku{},
+			sku:        armcompute.ResourceSKU{},
 			capability: "",
 		},
 		"empty capability should not match sku with empty list of capabilities": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{},
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{},
 			},
 			capability: "",
 		},
 		"empty capability should not match when present and false": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(""),
-						Value: to.StringPtr("False"),
+						Name:  to.Ptr(""),
+						Value: to.Ptr("False"),
 					},
 				},
 			},
 			capability: "",
 		},
 		"empty capability should not match when present and weird value": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(""),
-						Value: to.StringPtr("foobar"),
+						Name:  to.Ptr(""),
+						Value: to.Ptr("foobar"),
 					},
 				},
 			},
 			capability: "",
 		},
 		"foo capability should not match when false": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr("foo"),
-						Value: to.StringPtr("False"),
+						Name:  to.Ptr("foo"),
+						Value: to.Ptr("False"),
 					},
 				},
 			},
 			capability: "foo",
 		},
 		"foo capability should match when true": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr("foo"),
-						Value: to.StringPtr("True"),
+						Name:  to.Ptr("foo"),
+						Value: to.Ptr("True"),
 					},
 				},
 			},
@@ -154,28 +154,28 @@ func Test_SKU_HasCapability(t *testing.T) {
 
 func Test_SKU_HasCapabilityWithMinCapacity(t *testing.T) {
 	cases := map[string]struct {
-		sku        compute.ResourceSku
+		sku        armcompute.ResourceSKU
 		capability string
 		capacity   int64
 		expect     bool
 		err        error
 	}{
 		"empty capability should not match empty sku": {
-			sku:        compute.ResourceSku{},
+			sku:        armcompute.ResourceSKU{},
 			capability: "",
 		},
 		"empty capability should not match sku with empty list of capabilities": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{},
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{},
 			},
 			capability: "",
 		},
 		"empty capability should error when present and weird value": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(""),
-						Value: to.StringPtr("foobar"),
+						Name:  to.Ptr(""),
+						Value: to.Ptr("foobar"),
 					},
 				},
 			},
@@ -183,11 +183,11 @@ func Test_SKU_HasCapabilityWithMinCapacity(t *testing.T) {
 			err:        fmt.Errorf("failed to parse string 'foobar' as int64: strconv.ParseInt: parsing \"foobar\": invalid syntax"),
 		},
 		"empty capability should  match when present with zero capacity and requesting zero": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(""),
-						Value: to.StringPtr("0"),
+						Name:  to.Ptr(""),
+						Value: to.Ptr("0"),
 					},
 				},
 			},
@@ -195,11 +195,11 @@ func Test_SKU_HasCapabilityWithMinCapacity(t *testing.T) {
 			expect:     true,
 		},
 		"foo capability should not match when present and less than capacity": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr("foo"),
-						Value: to.StringPtr("100"),
+						Name:  to.Ptr("foo"),
+						Value: to.Ptr("100"),
 					},
 				},
 			},
@@ -207,11 +207,11 @@ func Test_SKU_HasCapabilityWithMinCapacity(t *testing.T) {
 			capacity:   200,
 		},
 		"foo capability should match when true": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr("foo"),
-						Value: to.StringPtr("10"),
+						Name:  to.Ptr("foo"),
+						Value: to.Ptr("10"),
 					},
 				},
 			},
@@ -241,27 +241,27 @@ func Test_SKU_HasCapabilityWithMinCapacity(t *testing.T) {
 
 func Test_SKU_GetResourceTypeAndName(t *testing.T) {
 	cases := map[string]struct {
-		sku                compute.ResourceSku
+		sku                armcompute.ResourceSKU
 		expectName         string
 		expectResourceType string
 	}{
 		"nil resourceType should return empty string": {
-			sku:                compute.ResourceSku{},
+			sku:                armcompute.ResourceSKU{},
 			expectResourceType: "",
 			expectName:         "",
 		},
 		"empty resourceType should return empty string": {
-			sku: compute.ResourceSku{
-				Name:         to.StringPtr(""),
-				ResourceType: to.StringPtr(""),
+			sku: armcompute.ResourceSKU{
+				Name:         to.Ptr(""),
+				ResourceType: to.Ptr(""),
 			},
 			expectResourceType: "",
 			expectName:         "",
 		},
 		"populated resourceType should return correctly": {
-			sku: compute.ResourceSku{
-				Name:         to.StringPtr("foo"),
-				ResourceType: to.StringPtr("foo"),
+			sku: armcompute.ResourceSKU{
+				Name:         to.Ptr("foo"),
+				ResourceType: to.Ptr("foo"),
 			},
 			expectResourceType: "foo",
 			expectName:         "foo",
@@ -284,30 +284,30 @@ func Test_SKU_GetResourceTypeAndName(t *testing.T) {
 
 func Test_SKU_IsResourceType(t *testing.T) {
 	cases := map[string]struct {
-		sku          compute.ResourceSku
+		sku          armcompute.ResourceSKU
 		resourceType string
 		expect       bool
 	}{
 		"nil resourceType should not match anything": {
-			sku:          compute.ResourceSku{},
+			sku:          armcompute.ResourceSKU{},
 			resourceType: "",
 		},
 		"empty resourceType should match empty string": {
-			sku: compute.ResourceSku{
-				ResourceType: to.StringPtr(""),
+			sku: armcompute.ResourceSKU{
+				ResourceType: to.Ptr(""),
 			},
 			resourceType: "",
 			expect:       true,
 		},
 		"empty resourceType should not match non-empty string": {
-			sku: compute.ResourceSku{
-				ResourceType: to.StringPtr(""),
+			sku: armcompute.ResourceSKU{
+				ResourceType: to.Ptr(""),
 			},
 			resourceType: "foo",
 		},
 		"populated resourceType should match itself": {
-			sku: compute.ResourceSku{
-				ResourceType: to.StringPtr("foo"),
+			sku: armcompute.ResourceSKU{
+				ResourceType: to.Ptr("foo"),
 			},
 			resourceType: "foo",
 			expect:       true,
@@ -327,48 +327,48 @@ func Test_SKU_IsResourceType(t *testing.T) {
 
 func Test_SKU_GetLocation(t *testing.T) {
 	cases := map[string]struct {
-		sku       compute.ResourceSku
+		sku       armcompute.ResourceSKU
 		expect    string
 		expectErr string
 	}{
 		"nil locations should return empty string": {
-			sku:    compute.ResourceSku{},
+			sku:    armcompute.ResourceSKU{},
 			expect: "",
 		},
 		"empty array of locations return empty string": {
-			sku: compute.ResourceSku{
-				Locations: &[]string{},
+			sku: armcompute.ResourceSKU{
+				Locations: []*string{},
 			},
 			expect: "",
 		},
 		"single empty value should return empty string": {
-			sku: compute.ResourceSku{
-				Locations: &[]string{
-					"",
+			sku: armcompute.ResourceSKU{
+				Locations: []*string{
+					to.Ptr(""),
 				},
 			},
 			expect: "",
 		},
 		"populated location should return correctly": {
-			sku: compute.ResourceSku{
-				Locations: &[]string{
-					"foo",
+			sku: armcompute.ResourceSKU{
+				Locations: []*string{
+					to.Ptr("foo"),
 				},
 			},
 			expect: "foo",
 		},
 		"should return error with multiple choices": {
-			sku: compute.ResourceSku{
-				Locations: &[]string{
-					"bar",
-					"foo",
+			sku: armcompute.ResourceSKU{
+				Locations: []*string{
+					to.Ptr("bar"),
+					to.Ptr("foo"),
 				},
 			},
 			expectErr: "sku had multiple locations, refusing to disambiguate",
 		},
 		"should return error with no choices": {
-			sku: compute.ResourceSku{
-				Locations: &[]string{},
+			sku: armcompute.ResourceSKU{
+				Locations: []*string{},
 			},
 			expectErr: "sku had no locations",
 		},
@@ -399,22 +399,22 @@ func Test_SKU_AvailabilityZones(t *testing.T) {}
 //nolint:funlen
 func Test_SKU_HasCapabilityInZone(t *testing.T) {
 	cases := map[string]struct {
-		sku        compute.ResourceSku
+		sku        armcompute.ResourceSKU
 		capability string
 		zone       string
 		expect     bool
 	}{
 		"should return false when capability is false": {
-			sku: compute.ResourceSku{
-				LocationInfo: &[]compute.ResourceSkuLocationInfo{
+			sku: armcompute.ResourceSKU{
+				LocationInfo: []*armcompute.ResourceSKULocationInfo{
 					{
-						ZoneDetails: &[]compute.ResourceSkuZoneDetails{
+						ZoneDetails: []*armcompute.ResourceSKUZoneDetails{
 							{
-								Name: &[]string{"1", "3"},
-								Capabilities: &[]compute.ResourceSkuCapabilities{
+								Name: []*string{to.Ptr("1"), to.Ptr("3")},
+								Capabilities: []*armcompute.ResourceSKUCapabilities{
 									{
-										Name:  to.StringPtr("foo"),
-										Value: to.StringPtr("False"),
+										Name:  to.Ptr("foo"),
+										Value: to.Ptr("False"),
 									},
 								},
 							},
@@ -427,16 +427,16 @@ func Test_SKU_HasCapabilityInZone(t *testing.T) {
 			expect:     false,
 		},
 		"should return false when zone doesn't match": {
-			sku: compute.ResourceSku{
-				LocationInfo: &[]compute.ResourceSkuLocationInfo{
+			sku: armcompute.ResourceSKU{
+				LocationInfo: []*armcompute.ResourceSKULocationInfo{
 					{
-						ZoneDetails: &[]compute.ResourceSkuZoneDetails{
+						ZoneDetails: []*armcompute.ResourceSKUZoneDetails{
 							{
-								Name: &[]string{"1", "3"},
-								Capabilities: &[]compute.ResourceSkuCapabilities{
+								Name: []*string{to.Ptr("1"), to.Ptr("3")},
+								Capabilities: []*armcompute.ResourceSKUCapabilities{
 									{
-										Name:  to.StringPtr("foo"),
-										Value: to.StringPtr("True"),
+										Name:  to.Ptr("foo"),
+										Value: to.Ptr("True"),
 									},
 								},
 							},
@@ -449,11 +449,11 @@ func Test_SKU_HasCapabilityInZone(t *testing.T) {
 			expect:     false,
 		},
 		"should not return true when the capability is not set in availability zone but set on sku capability": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr("foo"),
-						Value: to.StringPtr("True"),
+						Name:  to.Ptr("foo"),
+						Value: to.Ptr("True"),
 					},
 				},
 			},
@@ -462,16 +462,16 @@ func Test_SKU_HasCapabilityInZone(t *testing.T) {
 			expect:     false,
 		},
 		"should return true when capability and zone match": {
-			sku: compute.ResourceSku{
-				LocationInfo: &[]compute.ResourceSkuLocationInfo{
+			sku: armcompute.ResourceSKU{
+				LocationInfo: []*armcompute.ResourceSKULocationInfo{
 					{
-						ZoneDetails: &[]compute.ResourceSkuZoneDetails{
+						ZoneDetails: []*armcompute.ResourceSKUZoneDetails{
 							{
-								Name: &[]string{"1", "3"},
-								Capabilities: &[]compute.ResourceSkuCapabilities{
+								Name: []*string{to.Ptr("1"), to.Ptr("3")},
+								Capabilities: []*armcompute.ResourceSKUCapabilities{
 									{
-										Name:  to.StringPtr("foo"),
-										Value: to.StringPtr("True"),
+										Name:  to.Ptr("foo"),
+										Value: to.Ptr("True"),
 									},
 								},
 							},
@@ -484,16 +484,16 @@ func Test_SKU_HasCapabilityInZone(t *testing.T) {
 			expect:     true,
 		},
 		"should return true when capability and zone match for zone 3": {
-			sku: compute.ResourceSku{
-				LocationInfo: &[]compute.ResourceSkuLocationInfo{
+			sku: armcompute.ResourceSKU{
+				LocationInfo: []*armcompute.ResourceSKULocationInfo{
 					{
-						ZoneDetails: &[]compute.ResourceSkuZoneDetails{
+						ZoneDetails: []*armcompute.ResourceSKUZoneDetails{
 							{
-								Name: &[]string{"1", "3"},
-								Capabilities: &[]compute.ResourceSkuCapabilities{
+								Name: []*string{to.Ptr("1"), to.Ptr("3")},
+								Capabilities: []*armcompute.ResourceSKUCapabilities{
 									{
-										Name:  to.StringPtr("foo"),
-										Value: to.StringPtr("True"),
+										Name:  to.Ptr("foo"),
+										Value: to.Ptr("True"),
 									},
 								},
 							},
@@ -528,41 +528,39 @@ func Test_SKU_Includes(t *testing.T) {
 		"empty list should not include": {
 			skuList: []SKU{},
 			sku: SKU{
-				Name: to.StringPtr("foo"),
+				Name: to.Ptr("foo"),
 			},
 			expect: false,
 		},
 		"missing name should not include": {
 			skuList: []SKU{
 				{
-					Name: to.StringPtr("foo"),
+					Name: to.Ptr("foo"),
 				},
 			},
 			sku: SKU{
-				Name: to.StringPtr("bar"),
+				Name: to.Ptr("bar"),
 			},
 			expect: false,
 		},
 		"name is included": {
 			skuList: []SKU{
 				{
-					Name: to.StringPtr("foo"),
+					Name: to.Ptr("foo"),
 				},
 				{
-					Name: to.StringPtr("bar"),
+					Name: to.Ptr("bar"),
 				},
 			},
 			sku: SKU{
-				Name: to.StringPtr("bar"),
+				Name: to.Ptr("bar"),
 			},
 			expect: true,
 		},
 	}
 	for name, tc := range cases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
-			sku := SKU(tc.sku)
-			if diff := cmp.Diff(tc.expect, sku.MemberOf(tc.skuList)); diff != "" {
+			if diff := cmp.Diff(tc.expect, tc.sku.MemberOf(tc.skuList)); diff != "" {
 				t.Error(diff)
 			}
 		})

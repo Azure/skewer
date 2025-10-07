@@ -5,12 +5,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-08-01/compute" //nolint:staticcheck
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v7"
 	"github.com/pkg/errors"
 )
 
 // SKU wraps an Azure compute SKU with richer functionality
-type SKU compute.ResourceSku
+type SKU armcompute.ResourceSKU
 
 // ErrCapabilityNotFound will be returned when a capability could not be
 // found, even without a value.
@@ -144,11 +144,8 @@ func (s *SKU) GetCPUArchitectureType() (string, error) {
 // capability is not found, the value was nil, or the value could not be
 // parsed as an integer.
 func (s *SKU) GetCapabilityIntegerQuantity(name string) (int64, error) {
-	if s.Capabilities == nil {
-		return -1, &ErrCapabilityNotFound{name}
-	}
-	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && *capability.Name == name {
+	for _, capability := range s.Capabilities {
+		if capability != nil && capability.Name != nil && *capability.Name == name {
 			if capability.Value != nil {
 				intVal, err := strconv.ParseInt(*capability.Value, ten, sixtyFour)
 				if err != nil {
@@ -167,11 +164,8 @@ func (s *SKU) GetCapabilityIntegerQuantity(name string) (int64, error) {
 // if the capability is not found, the value was nil, or the value could
 // not be parsed as an integer.
 func (s *SKU) GetCapabilityFloatQuantity(name string) (float64, error) {
-	if s.Capabilities == nil {
-		return -1, &ErrCapabilityNotFound{name}
-	}
-	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && *capability.Name == name {
+	for _, capability := range s.Capabilities {
+		if capability != nil && capability.Name != nil && *capability.Name == name {
 			if capability.Value != nil {
 				intVal, err := strconv.ParseFloat(*capability.Value, sixtyFour)
 				if err != nil {
@@ -188,11 +182,8 @@ func (s *SKU) GetCapabilityFloatQuantity(name string) (float64, error) {
 // GetCapabilityString retrieves string capability with the provided name.
 // It errors if the capability is not found or the value was nil
 func (s *SKU) GetCapabilityString(name string) (string, error) {
-	if s.Capabilities == nil {
-		return "", &ErrCapabilityNotFound{name}
-	}
-	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && *capability.Name == name {
+	for _, capability := range s.Capabilities {
+		if capability != nil && capability.Name != nil && *capability.Name == name {
 			if capability.Value != nil {
 				return *capability.Value, nil
 			}
@@ -207,11 +198,8 @@ func (s *SKU) GetCapabilityString(name string) (string, error) {
 // "EncryptionAtHostSupported", "AcceleratedNetworkingEnabled", and
 // "RdmaEnabled"
 func (s *SKU) HasCapability(name string) bool {
-	if s.Capabilities == nil {
-		return false
-	}
-	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
+	for _, capability := range s.Capabilities {
+		if capability != nil && capability.Name != nil && strings.EqualFold(*capability.Name, name) {
 			return capability.Value != nil && strings.EqualFold(*capability.Value, string(CapabilitySupported))
 		}
 	}
@@ -227,19 +215,16 @@ func (s *SKU) HasCapability(name string) bool {
 // available.
 // For per zone capability check, use "HasCapabilityInZone"
 func (s *SKU) HasZonalCapability(name string) bool {
-	if s.LocationInfo == nil {
-		return false
-	}
-	for _, locationInfo := range *s.LocationInfo {
-		if locationInfo.ZoneDetails == nil {
+	for _, locationInfo := range s.LocationInfo {
+		if locationInfo == nil {
 			continue
 		}
-		for _, zoneDetails := range *locationInfo.ZoneDetails {
-			if zoneDetails.Capabilities == nil {
+		for _, zoneDetails := range locationInfo.ZoneDetails {
+			if zoneDetails == nil {
 				continue
 			}
-			for _, capability := range *zoneDetails.Capabilities {
-				if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
+			for _, capability := range zoneDetails.Capabilities {
+				if capability != nil && capability.Name != nil && strings.EqualFold(*capability.Name, name) {
 					if capability.Value != nil && strings.EqualFold(*capability.Value, string(CapabilitySupported)) {
 						return true
 					}
@@ -253,32 +238,27 @@ func (s *SKU) HasZonalCapability(name string) bool {
 // HasCapabilityInZone return true if the specified capability name is supported in the
 // specified zone.
 func (s *SKU) HasCapabilityInZone(name, zone string) bool {
-	if s.LocationInfo == nil {
-		return false
-	}
-	for _, locationInfo := range *s.LocationInfo {
-		if locationInfo.ZoneDetails == nil {
+	for _, locationInfo := range s.LocationInfo {
+		if locationInfo == nil {
 			continue
 		}
-		for _, zoneDetails := range *locationInfo.ZoneDetails {
-			if zoneDetails.Capabilities == nil {
+		for _, zoneDetails := range locationInfo.ZoneDetails {
+			if zoneDetails == nil {
 				continue
 			}
 			foundZone := false
-			if zoneDetails.Name != nil {
-				for _, zoneName := range *zoneDetails.Name {
-					if strings.EqualFold(zone, zoneName) {
-						foundZone = true
-						break
-					}
+			for _, zoneName := range zoneDetails.Name {
+				if zoneName != nil && strings.EqualFold(zone, *zoneName) {
+					foundZone = true
+					break
 				}
 			}
 			if !foundZone {
 				continue
 			}
 
-			for _, capability := range *zoneDetails.Capabilities {
-				if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
+			for _, capability := range zoneDetails.Capabilities {
+				if capability != nil && capability.Name != nil && strings.EqualFold(*capability.Name, name) {
 					if capability.Value != nil && strings.EqualFold(*capability.Value, string(CapabilitySupported)) {
 						return true
 					}
@@ -294,11 +274,8 @@ func (s *SKU) HasCapabilityInZone(name, zone string) bool {
 // the desired substring. An example is "HyperVGenerations" which may be
 // "V1,V2"
 func (s *SKU) HasCapabilityWithSeparator(name, value string) bool {
-	if s.Capabilities == nil {
-		return false
-	}
-	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
+	for _, capability := range s.Capabilities {
+		if capability != nil && capability.Name != nil && strings.EqualFold(*capability.Name, name) {
 			return capability.Value != nil && strings.Contains(normalizeLocation(*capability.Value), normalizeLocation(value))
 		}
 	}
@@ -314,11 +291,8 @@ func (s *SKU) HasCapabilityWithSeparator(name, value string) bool {
 // "CombinedTempDiskAndCachedWriteBytesPerSecond", "UncachedDiskIOPS",
 // and "UncachedDiskBytesPerSecond"
 func (s *SKU) HasCapabilityWithMinCapacity(name string, value int64) (bool, error) {
-	if s.Capabilities == nil {
-		return false, nil
-	}
-	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
+	for _, capability := range s.Capabilities {
+		if capability != nil && capability.Name != nil && strings.EqualFold(*capability.Name, name) {
 			if capability.Value != nil {
 				intVal, err := strconv.ParseInt(*capability.Value, ten, sixtyFour)
 				if err != nil {
@@ -337,18 +311,13 @@ func (s *SKU) HasCapabilityWithMinCapacity(name string, value int64) (bool, erro
 // IsAvailable returns true when the requested location matches one on
 // the sku, and there are no total restrictions on the location.
 func (s *SKU) IsAvailable(location string) bool {
-	if s.LocationInfo == nil {
-		return false
-	}
-	for _, locationInfo := range *s.LocationInfo {
-		if locationInfo.Location != nil {
+	for _, locationInfo := range s.LocationInfo {
+		if locationInfo != nil && locationInfo.Location != nil {
 			if locationEquals(*locationInfo.Location, location) {
-				if s.Restrictions != nil {
-					for _, restriction := range *s.Restrictions {
-						// Can't deploy to any zones in this location. We're done.
-						if restriction.Type == compute.Location {
-							return false
-						}
+				for _, restriction := range s.Restrictions {
+					// Can't deploy to any zones in this location. We're done.
+					if restriction != nil && restriction.Type != nil && *restriction.Type == armcompute.ResourceSKURestrictionsTypeLocation {
+						return false
 					}
 				}
 				return true
@@ -361,16 +330,13 @@ func (s *SKU) IsAvailable(location string) bool {
 // IsRestricted returns true when a location restriction exists for
 // this SKU.
 func (s *SKU) IsRestricted(location string) bool {
-	if s.Restrictions == nil {
-		return false
-	}
-	for _, restriction := range *s.Restrictions {
-		if restriction.Values == nil {
+	for _, restriction := range s.Restrictions {
+		if restriction == nil || restriction.Values == nil {
 			continue
 		}
-		for _, candidate := range *restriction.Values {
+		for _, candidate := range restriction.Values {
 			// Can't deploy in this location. We're done.
-			if locationEquals(candidate, location) && restriction.Type == compute.Location {
+			if candidate != nil && locationEquals(*candidate, location) && restriction.Type != nil && *restriction.Type == armcompute.ResourceSKURestrictionsTypeLocation {
 				return true
 			}
 		}
@@ -439,25 +405,25 @@ func (s *SKU) GetLocation() (string, error) {
 		return "", fmt.Errorf("sku had nil location array")
 	}
 
-	if len(*s.Locations) < 1 {
+	if len(s.Locations) < 1 {
 		return "", fmt.Errorf("sku had no locations")
 	}
 
-	if len(*s.Locations) > 1 {
+	if len(s.Locations) > 1 {
 		return "", fmt.Errorf("sku had multiple locations, refusing to disambiguate")
 	}
 
-	return (*s.Locations)[0], nil
+	if s.Locations[0] == nil {
+		return "", fmt.Errorf("sku had nil location")
+	}
+
+	return *s.Locations[0], nil
 }
 
 // HasLocation returns true if the given sku exposes this region for deployment.
 func (s *SKU) HasLocation(location string) bool {
-	if s.Locations == nil {
-		return false
-	}
-
-	for _, candidate := range *s.Locations {
-		if locationEquals(candidate, location) {
+	for _, candidate := range s.Locations {
+		if candidate != nil && locationEquals(*candidate, location) {
 			return true
 		}
 	}
@@ -468,19 +434,15 @@ func (s *SKU) HasLocation(location string) bool {
 // HasLocationRestriction returns true if the location is restricted for
 // this sku.
 func (s *SKU) HasLocationRestriction(location string) bool {
-	if s.Restrictions == nil {
-		return false
-	}
-
-	for _, restriction := range *s.Restrictions {
-		if restriction.Type != compute.Location {
+	for _, restriction := range s.Restrictions {
+		if restriction.Type != nil && *restriction.Type != armcompute.ResourceSKURestrictionsTypeLocation {
 			continue
 		}
 		if restriction.Values == nil {
 			continue
 		}
-		for _, candidate := range *restriction.Values {
-			if locationEquals(candidate, location) {
+		for _, candidate := range restriction.Values {
+			if candidate != nil && locationEquals(*candidate, location) {
 				return true
 			}
 		}
@@ -518,33 +480,33 @@ func (s *SKU) AvailabilityZones(location string) map[string]bool { //nolint:gocy
 	availableZones := make(map[string]bool)
 	restrictedZones := make(map[string]bool)
 
-	for _, locationInfo := range *s.LocationInfo {
-		if locationInfo.Location == nil {
+	for _, locationInfo := range s.LocationInfo {
+		if locationInfo == nil || locationInfo.Location == nil {
 			continue
 		}
 		if locationEquals(*locationInfo.Location, location) {
 			// add all zones
-			if locationInfo.Zones != nil {
-				for _, zone := range *locationInfo.Zones {
-					availableZones[zone] = true
+			for _, zone := range locationInfo.Zones {
+				if zone != nil {
+					availableZones[*zone] = true
 				}
 			}
 
 			// iterate restrictions, remove any restricted zones for this location
-			if s.Restrictions != nil {
-				for _, restriction := range *s.Restrictions {
-					if restriction.Values != nil {
-						for _, candidate := range *restriction.Values {
-							if locationEquals(candidate, location) {
-								if restriction.Type == compute.Location {
-									// Can't deploy in this location. We're done.
-									return nil
-								}
+			for _, restriction := range s.Restrictions {
+				if restriction != nil {
+					for _, candidate := range restriction.Values {
+						if candidate != nil && locationEquals(*candidate, location) {
+							if restriction.Type != nil && *restriction.Type == armcompute.ResourceSKURestrictionsTypeLocation {
+								// Can't deploy in this location. We're done.
+								return nil
+							}
 
-								if restriction.RestrictionInfo != nil && restriction.RestrictionInfo.Zones != nil {
-									// remove restricted zones
-									for _, zone := range *restriction.RestrictionInfo.Zones {
-										restrictedZones[zone] = true
+							if restriction.RestrictionInfo != nil {
+								// remove restricted zones
+								for _, zone := range restriction.RestrictionInfo.Zones {
+									if zone != nil {
+										restrictedZones[*zone] = true
 									}
 								}
 							}
@@ -565,7 +527,7 @@ func (s *SKU) AvailabilityZones(location string) map[string]bool { //nolint:gocy
 // Equal returns true when two skus have the same location, type, and name.
 func (s *SKU) Equal(other *SKU) bool {
 	location, localErr := s.GetLocation()
-	otherLocation, otherErr := s.GetLocation()
+	otherLocation, otherErr := other.GetLocation()
 	return strings.EqualFold(s.GetResourceType(), other.GetResourceType()) &&
 		strings.EqualFold(s.GetName(), other.GetName()) &&
 		locationEquals(location, otherLocation) &&

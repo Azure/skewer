@@ -6,35 +6,40 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-08-01/compute" //nolint:staticcheck
-	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"github.com/Azure/skewer/testdata"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v7"
+	"github.com/Azure/skewer/v2/testdata"
 )
 
 func getSKUs(subscriptionID, region string) (map[string]testdata.SKUInfo, error) {
-	authorizer, err := auth.NewAuthorizerFromCLI()
+	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create a new compute client
-	client := compute.NewResourceSkusClient(subscriptionID)
-	client.Authorizer = authorizer
-
-	// List SKUs for the specified region
-	skuList, err := client.List(context.Background(), region, "")
+	client, err := armcompute.NewResourceSKUsClient(subscriptionID, cred, nil)
 	if err != nil {
 		return nil, err
 	}
+
+	ctx := context.Background()
+	filter := fmt.Sprintf("location eq '%s'", region)
+	pager := client.NewListPager(&armcompute.ResourceSKUsClientListOptions{Filter: &filter})
 
 	skus := map[string]testdata.SKUInfo{}
-	for _, sku := range skuList.Values() {
-		if *sku.ResourceType == "virtualMachines" {
-			if _, ok := skus[*sku.Name]; !ok {
-				skuInfo := testdata.SKUInfo{
-					Size: *sku.Size,
+	for pager.More() {
+		page, err := pager.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, v := range page.Value {
+			if v.ResourceType != nil && *v.ResourceType == "virtualMachines" {
+				if _, ok := skus[*v.Name]; !ok {
+					skuInfo := testdata.SKUInfo{
+						Size: *v.Size,
+					}
+					skus[*v.Name] = skuInfo
 				}
-				skus[*sku.Name] = skuInfo
 			}
 		}
 	}

@@ -16,31 +16,29 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-08-01/compute" //nolint:staticcheck
-	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v7"
 
-	"github.com/Azure/skewer"
-)
-
-const (
-	SubscriptionID = "AZURE_SUBSCRIPTION_ID"
-	TenantID       = "AZURE_TENANT_ID"
-	ClientID       = "AZURE_CLIENT_ID"
-	ClientSecret   = "AZURE_CLIENT_SECRET"
+	"github.com/Azure/skewer/v2"
 )
 
 func main() {
-	os.Setenv(SubscriptionID, "subscriptionID")
-	os.Setenv(TenantID, "TenantID")
-	os.Setenv(ClientID, "AAD Client ID or AppID")
-	os.Setenv(ClientSecret, "AADClientSecretHere")
-	sub := os.Getenv(SubscriptionID)
-	authorizer, err := auth.NewAuthorizerFromEnvironment()
-	// Create a skus client
-	client := compute.NewResourceSkusClient(sub)
-	client.Authorizer = authorizer
+	// az login
+	// export AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+	sub := os.Getenv("AZURE_SUBSCRIPTION_ID")
+	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	if err != nil {
+		fmt.Printf("failed to get credential: %s", err)
+		os.Exit(1)
+	}
 
-	cache, err := skewer.NewCache(context.Background(), skewer.WithLocation("southcentralus"), skewer.WithResourceClient(client))
+	client, err := armcompute.NewResourceSKUsClient(sub, cred, nil)
+	if err != nil {
+		fmt.Printf("failed to get client: %s", err)
+		os.Exit(1)
+	}
+
+	cache, err := skewer.NewCache(context.Background(), skewer.WithLocation("eastus"), skewer.WithResourceClient(client))
 	if err != nil {
 		fmt.Printf("failed to instantiate sku cache: %s", err)
 		os.Exit(1)
@@ -54,14 +52,14 @@ func main() {
 
 Once we have a cache, we can query against its contents:
 ```go
-sku, found := cache.Get(context.Background, "standard_d4s_v3", skewer.VirtualMachines, "eastus")
-if !found {
-    return fmt.Errorf("expected to find virtual machine sku standard_d4s_v3")
+sku, err := cache.Get(context.Background(), "standard_d4s_v3", skewer.VirtualMachines, "eastus")
+if err != nil {
+    return fmt.Errorf("failed to find virtual machine sku standard_d4s_v3: %s", err)
 }
 
 // Check for capabilities
 if sku.IsEphemeralOSDiskSupported() {
-    fmt.Println("SKU %s supports ephemeral OS disk!", sku.GetName())
+    fmt.Printf("SKU %s supports ephemeral OS disk!\n", sku.GetName())
 }
 
 cpu, err := sku.VCPU()
@@ -74,7 +72,7 @@ if err != nil {
     return fmt.Errorf("failed to parse memory from sku: %s", err)
 }
 
-fmt.Printf("vm sku %s has %d vCPU cores and %.2fGi of memory", sku.GetName(), cpu, memory)
+fmt.Printf("vm sku %s has %d vCPU cores and %.2fGi of memory\n", sku.GetName(), cpu, memory)
 ```
 
 # Development

@@ -1,13 +1,15 @@
 package skewer
 
-import "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-08-01/compute" //nolint:staticcheck
+import "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v7"
 
 // Wrap takes an array of compute resource skus and wraps them into an
 // array of our richer type.
-func Wrap(in []compute.ResourceSku) []SKU {
+func Wrap(in []*armcompute.ResourceSKU) []SKU {
 	out := make([]SKU, len(in))
 	for index, value := range in {
-		out[index] = SKU(value)
+		if value != nil {
+			out[index] = SKU(*value)
+		}
 	}
 	return out
 }

@@ -3,53 +3,53 @@ package skewer
 import (
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2022-08-01/compute" //nolint:staticcheck
-	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v7"
 )
 
 func Test_SKU_HasSCSISupport(t *testing.T) {
 	cases := map[string]struct {
-		sku    compute.ResourceSku
+		sku    armcompute.ResourceSKU
 		expect bool
 	}{
 		"empty capability list should return true (backward compatibility)": {
-			sku:    compute.ResourceSku{},
+			sku:    armcompute.ResourceSKU{},
 			expect: true,
 		},
 		"no disk controller capability should return true": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{},
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{},
 			},
 			expect: true,
 		},
 		"SCSI only should return true": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(DiskControllerTypes),
-						Value: to.StringPtr("SCSI"),
+						Name:  to.Ptr(DiskControllerTypes),
+						Value: to.Ptr("SCSI"),
 					},
 				},
 			},
 			expect: true,
 		},
 		"SCSI and NVMe should return true": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(DiskControllerTypes),
-						Value: to.StringPtr("SCSI,NVMe"),
+						Name:  to.Ptr(DiskControllerTypes),
+						Value: to.Ptr("SCSI,NVMe"),
 					},
 				},
 			},
 			expect: true,
 		},
 		"NVMe only should return false": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(DiskControllerTypes),
-						Value: to.StringPtr("NVMe"),
+						Name:  to.Ptr(DiskControllerTypes),
+						Value: to.Ptr("NVMe"),
 					},
 				},
 			},
@@ -70,58 +70,58 @@ func Test_SKU_HasSCSISupport(t *testing.T) {
 
 func Test_SKU_HasNVMeSupport(t *testing.T) {
 	cases := map[string]struct {
-		sku    compute.ResourceSku
+		sku    armcompute.ResourceSKU
 		expect bool
 	}{
 		"empty capability list should return false": {
-			sku:    compute.ResourceSku{},
+			sku:    armcompute.ResourceSKU{},
 			expect: false,
 		},
 		"no disk controller capability should return false": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{},
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{},
 			},
 			expect: false,
 		},
 		"SCSI only should return false": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(DiskControllerTypes),
-						Value: to.StringPtr("SCSI"),
+						Name:  to.Ptr(DiskControllerTypes),
+						Value: to.Ptr("SCSI"),
 					},
 				},
 			},
 			expect: false,
 		},
 		"SCSI and NVMe should return true": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(DiskControllerTypes),
-						Value: to.StringPtr("SCSI,NVMe"),
+						Name:  to.Ptr(DiskControllerTypes),
+						Value: to.Ptr("SCSI,NVMe"),
 					},
 				},
 			},
 			expect: true,
 		},
 		"NVMe only should return true": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(DiskControllerTypes),
-						Value: to.StringPtr("NVMe"),
+						Name:  to.Ptr(DiskControllerTypes),
+						Value: to.Ptr("NVMe"),
 					},
 				},
 			},
 			expect: true,
 		},
 		"NVMe in mixed case should return true": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(DiskControllerTypes),
-						Value: to.StringPtr("SCSI,NVMe,Other"),
+						Name:  to.Ptr(DiskControllerTypes),
+						Value: to.Ptr("SCSI,NVMe,Other"),
 					},
 				},
 			},
@@ -142,52 +142,52 @@ func Test_SKU_HasNVMeSupport(t *testing.T) {
 
 func Test_SKU_SupportsNVMeEphemeralOSDisk(t *testing.T) {
 	cases := map[string]struct {
-		sku    compute.ResourceSku
+		sku    armcompute.ResourceSKU
 		expect bool
 	}{
 		"empty capability list should return false": {
-			sku:    compute.ResourceSku{},
+			sku:    armcompute.ResourceSKU{},
 			expect: false,
 		},
 		"no ephemeral placement capability should return false": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr("vCPUs"),
-						Value: to.StringPtr("8"),
+						Name:  to.Ptr("vCPUs"),
+						Value: to.Ptr("8"),
 					},
 				},
 			},
 			expect: false,
 		},
 		"ResourceDisk only should return false": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(SupportedEphemeralOSDiskPlacements),
-						Value: to.StringPtr("ResourceDisk"),
+						Name:  to.Ptr(SupportedEphemeralOSDiskPlacements),
+						Value: to.Ptr("ResourceDisk"),
 					},
 				},
 			},
 			expect: false,
 		},
 		"NvmeDisk should return true": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(SupportedEphemeralOSDiskPlacements),
-						Value: to.StringPtr("NvmeDisk"),
+						Name:  to.Ptr(SupportedEphemeralOSDiskPlacements),
+						Value: to.Ptr("NvmeDisk"),
 					},
 				},
 			},
 			expect: true,
 		},
 		"ResourceDisk and NvmeDisk should return true": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(SupportedEphemeralOSDiskPlacements),
-						Value: to.StringPtr("ResourceDisk,NvmeDisk"),
+						Name:  to.Ptr(SupportedEphemeralOSDiskPlacements),
+						Value: to.Ptr("ResourceDisk,NvmeDisk"),
 					},
 				},
 			},
@@ -208,42 +208,42 @@ func Test_SKU_SupportsNVMeEphemeralOSDisk(t *testing.T) {
 
 func Test_SKU_NVMeDiskSizeInMiB(t *testing.T) {
 	cases := map[string]struct {
-		sku    compute.ResourceSku
+		sku    armcompute.ResourceSKU
 		expect int64
 		err    string
 	}{
 		"empty capability list should return error": {
-			sku: compute.ResourceSku{},
+			sku: armcompute.ResourceSKU{},
 			err: (&ErrCapabilityNotFound{NvmeDiskSizeInMiB}).Error(),
 		},
 		"no NVMe disk size capability should return error": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr("vCPUs"),
-						Value: to.StringPtr("8"),
+						Name:  to.Ptr("vCPUs"),
+						Value: to.Ptr("8"),
 					},
 				},
 			},
 			err: (&ErrCapabilityNotFound{NvmeDiskSizeInMiB}).Error(),
 		},
 		"valid NVMe disk size should return value": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(NvmeDiskSizeInMiB),
-						Value: to.StringPtr("1024000"),
+						Name:  to.Ptr(NvmeDiskSizeInMiB),
+						Value: to.Ptr("1024000"),
 					},
 				},
 			},
 			expect: 1024000,
 		},
 		"invalid NVMe disk size should return parse error": {
-			sku: compute.ResourceSku{
-				Capabilities: &[]compute.ResourceSkuCapabilities{
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
 					{
-						Name:  to.StringPtr(NvmeDiskSizeInMiB),
-						Value: to.StringPtr("not-a-number"),
+						Name:  to.Ptr(NvmeDiskSizeInMiB),
+						Value: to.Ptr("not-a-number"),
 					},
 				},
 			},

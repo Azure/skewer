@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/skewer/testdata"
+	"github.com/Azure/skewer/v2/testdata"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
