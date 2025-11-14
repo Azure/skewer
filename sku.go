@@ -576,7 +576,7 @@ func (s *SKU) Equal(other *SKU) bool {
 // MemberOf returns true if the SKU's name is in the list of SKUs.
 func (s *SKU) MemberOf(skuList []SKU) bool {
 	for _, sku := range skuList {
-		if s.GetName() == sku.GetName() {
+		if strings.EqualFold(s.GetName(), sku.GetName()) {
 			return true
 		}
 	}

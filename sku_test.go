@@ -753,6 +753,20 @@ func Test_SKU_Includes(t *testing.T) {
 			},
 			expect: true,
 		},
+		"name matching should be case insensitive": {
+			skuList: []SKU{
+				{
+					Name: to.StringPtr("Standard_D4s_v3"),
+				},
+				{
+					Name: to.StringPtr("Standard_F8s_v2"),
+				},
+			},
+			sku: SKU{
+				Name: to.StringPtr("standard_d4s_v3"),
+			},
+			expect: true,
+		},
 	}
 	for name, tc := range cases {
 		tc := tc
