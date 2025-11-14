@@ -52,6 +52,42 @@ func Test_SKU_GetCapabilityQuantity(t *testing.T) {
 			capability: "foo",
 			expect:     100,
 		},
+		"capability name matching should be case insensitive - lowercase query": {
+			sku: compute.ResourceSku{
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{
+						Name:  to.StringPtr("VCPUs"),
+						Value: to.StringPtr("8"),
+					},
+				},
+			},
+			capability: "vcpus",
+			expect:     8,
+		},
+		"capability name matching should be case insensitive - uppercase query": {
+			sku: compute.ResourceSku{
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{
+						Name:  to.StringPtr("memoryGB"),
+						Value: to.StringPtr("32"),
+					},
+				},
+			},
+			capability: "MEMORYGB",
+			expect:     32,
+		},
+		"capability name matching should be case insensitive - mixed case query": {
+			sku: compute.ResourceSku{
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{
+						Name:  to.StringPtr("maxResourceVolumeMB"),
+						Value: to.StringPtr("1024"),
+					},
+				},
+			},
+			capability: "MaxResourceVolumeMb",
+			expect:     1024,
+		},
 	}
 
 	for name, tc := range cases {
@@ -71,6 +107,142 @@ func Test_SKU_GetCapabilityQuantity(t *testing.T) {
 					t.Errorf("expected success but failure occurred with error '%s'", err)
 				}
 				if diff := cmp.Diff(tc.expect, quantity); diff != "" {
+					t.Error(diff)
+				}
+			}
+		})
+	}
+}
+
+func Test_SKU_GetCapabilityFloatQuantity(t *testing.T) {
+	cases := map[string]struct {
+		sku        compute.ResourceSku
+		capability string
+		expect     float64
+		err        string
+	}{
+		"empty capability list should return capability not found": {
+			sku:        compute.ResourceSku{},
+			capability: "",
+			err:        (&ErrCapabilityNotFound{""}).Error(),
+		},
+		"capability should return successfully with float": {
+			sku: compute.ResourceSku{
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{
+						Name:  to.StringPtr("memoryGB"),
+						Value: to.StringPtr("7.5"),
+					},
+				},
+			},
+			capability: "memoryGB",
+			expect:     7.5,
+		},
+		"capability name matching should be case insensitive for float": {
+			sku: compute.ResourceSku{
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{
+						Name:  to.StringPtr("MemoryGB"),
+						Value: to.StringPtr("16.0"),
+					},
+				},
+			},
+			capability: "memorygb",
+			expect:     16.0,
+		},
+	}
+
+	for name, tc := range cases {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			sku := SKU(tc.sku)
+			quantity, err := sku.GetCapabilityFloatQuantity(tc.capability)
+			if tc.err != "" {
+				if err == nil {
+					t.Errorf("expected failure with error '%s' but did not occur", tc.err)
+				}
+				if diff := cmp.Diff(tc.err, err.Error()); diff != "" {
+					t.Error(diff)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("expected success but failure occurred with error '%s'", err)
+				}
+				if diff := cmp.Diff(tc.expect, quantity); diff != "" {
+					t.Error(diff)
+				}
+			}
+		})
+	}
+}
+
+func Test_SKU_GetCapabilityString(t *testing.T) {
+	cases := map[string]struct {
+		sku        compute.ResourceSku
+		capability string
+		expect     string
+		err        string
+	}{
+		"empty capability list should return capability not found": {
+			sku:        compute.ResourceSku{},
+			capability: "",
+			err:        (&ErrCapabilityNotFound{""}).Error(),
+		},
+		"capability should return successfully with string": {
+			sku: compute.ResourceSku{
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{
+						Name:  to.StringPtr("CPUArchitectureType"),
+						Value: to.StringPtr("x64"),
+					},
+				},
+			},
+			capability: "CPUArchitectureType",
+			expect:     "x64",
+		},
+		"capability name matching should be case insensitive for string": {
+			sku: compute.ResourceSku{
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{
+						Name:  to.StringPtr("CPUArchitectureType"),
+						Value: to.StringPtr("Arm64"),
+					},
+				},
+			},
+			capability: "cpuarchitecturetype",
+			expect:     "Arm64",
+		},
+		"capability name matching should be case insensitive - mixed case string": {
+			sku: compute.ResourceSku{
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{
+						Name:  to.StringPtr("hyperVGenerations"),
+						Value: to.StringPtr("V1,V2"),
+					},
+				},
+			},
+			capability: "HyperVGenerations",
+			expect:     "V1,V2",
+		},
+	}
+
+	for name, tc := range cases {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			sku := SKU(tc.sku)
+			result, err := sku.GetCapabilityString(tc.capability)
+			if tc.err != "" {
+				if err == nil {
+					t.Errorf("expected failure with error '%s' but did not occur", tc.err)
+				}
+				if diff := cmp.Diff(tc.err, err.Error()); diff != "" {
+					t.Error(diff)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("expected success but failure occurred with error '%s'", err)
+				}
+				if diff := cmp.Diff(tc.expect, result); diff != "" {
 					t.Error(diff)
 				}
 			}
@@ -137,6 +309,30 @@ func Test_SKU_HasCapability(t *testing.T) {
 				},
 			},
 			capability: "foo",
+			expect:     true,
+		},
+		"capability name matching should be case insensitive - uppercase capability": {
+			sku: compute.ResourceSku{
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{
+						Name:  to.StringPtr("EncryptionAtHostSupported"),
+						Value: to.StringPtr("True"),
+					},
+				},
+			},
+			capability: "encryptionathostsupported",
+			expect:     true,
+		},
+		"capability name matching should be case insensitive - mixed case capability": {
+			sku: compute.ResourceSku{
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{
+						Name:  to.StringPtr("acceleratednetworkingenabled"),
+						Value: to.StringPtr("True"),
+					},
+				},
+			},
+			capability: "AcceleratedNetworkingEnabled",
 			expect:     true,
 		},
 	}

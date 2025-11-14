@@ -148,7 +148,7 @@ func (s *SKU) GetCapabilityIntegerQuantity(name string) (int64, error) {
 		return -1, &ErrCapabilityNotFound{name}
 	}
 	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && *capability.Name == name {
+		if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
 			if capability.Value != nil {
 				intVal, err := strconv.ParseInt(*capability.Value, ten, sixtyFour)
 				if err != nil {
@@ -171,7 +171,7 @@ func (s *SKU) GetCapabilityFloatQuantity(name string) (float64, error) {
 		return -1, &ErrCapabilityNotFound{name}
 	}
 	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && *capability.Name == name {
+		if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
 			if capability.Value != nil {
 				intVal, err := strconv.ParseFloat(*capability.Value, sixtyFour)
 				if err != nil {
@@ -192,7 +192,7 @@ func (s *SKU) GetCapabilityString(name string) (string, error) {
 		return "", &ErrCapabilityNotFound{name}
 	}
 	for _, capability := range *s.Capabilities {
-		if capability.Name != nil && *capability.Name == name {
+		if capability.Name != nil && strings.EqualFold(*capability.Name, name) {
 			if capability.Value != nil {
 				return *capability.Value, nil
 			}

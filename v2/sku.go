@@ -145,7 +145,7 @@ func (s *SKU) GetCPUArchitectureType() (string, error) {
 // parsed as an integer.
 func (s *SKU) GetCapabilityIntegerQuantity(name string) (int64, error) {
 	for _, capability := range s.Capabilities {
-		if capability != nil && capability.Name != nil && *capability.Name == name {
+		if capability != nil && capability.Name != nil && strings.EqualFold(*capability.Name, name) {
 			if capability.Value != nil {
 				intVal, err := strconv.ParseInt(*capability.Value, ten, sixtyFour)
 				if err != nil {
@@ -165,7 +165,7 @@ func (s *SKU) GetCapabilityIntegerQuantity(name string) (int64, error) {
 // not be parsed as an integer.
 func (s *SKU) GetCapabilityFloatQuantity(name string) (float64, error) {
 	for _, capability := range s.Capabilities {
-		if capability != nil && capability.Name != nil && *capability.Name == name {
+		if capability != nil && capability.Name != nil && strings.EqualFold(*capability.Name, name) {
 			if capability.Value != nil {
 				intVal, err := strconv.ParseFloat(*capability.Value, sixtyFour)
 				if err != nil {
@@ -183,7 +183,7 @@ func (s *SKU) GetCapabilityFloatQuantity(name string) (float64, error) {
 // It errors if the capability is not found or the value was nil
 func (s *SKU) GetCapabilityString(name string) (string, error) {
 	for _, capability := range s.Capabilities {
-		if capability != nil && capability.Name != nil && *capability.Name == name {
+		if capability != nil && capability.Name != nil && strings.EqualFold(*capability.Name, name) {
 			if capability.Value != nil {
 				return *capability.Value, nil
 			}
