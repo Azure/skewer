@@ -8,9 +8,25 @@ function deps() {
     mkdir -p "${GITHUB_WORKSPACE}/tmp"
     pushd "${GITHUB_WORKSPACE}/tmp"
     go mod init tmp
-    go install github.com/axw/gocov/gocov@latest
-    go install github.com/AlekSi/gocov-xml@latest
-    go install github.com/wadey/gocovmerge@latest
+    cat > tools.go <<'EOF'
+//go:build tools
+
+package tools
+
+import (
+	_ "github.com/axw/gocov/gocov"
+	_ "github.com/AlekSi/gocov-xml"
+	_ "github.com/wadey/gocovmerge"
+)
+EOF
+    go get github.com/axw/gocov/gocov@latest
+    go get github.com/AlekSi/gocov-xml@latest
+    go get github.com/wadey/gocovmerge@latest
+    go get golang.org/x/tools@latest
+    go mod tidy
+    go install github.com/axw/gocov/gocov
+    go install github.com/AlekSi/gocov-xml
+    go install github.com/wadey/gocovmerge
     cp "$(go env GOPATH)/bin/gocov" "${GITHUB_WORKSPACE}/bin/gocov"
     cp "$(go env GOPATH)/bin/gocov-xml" "${GITHUB_WORKSPACE}/bin/gocov-xml"
     cp "$(go env GOPATH)/bin/gocovmerge" "${GITHUB_WORKSPACE}/bin/gocovmerge"
@@ -19,6 +35,7 @@ function deps() {
 }
 
 function init() {
+    export GOTOOLCHAIN=go1.25.0
     go env
     mkdir -p "${GITHUB_WORKSPACE}/bin"
     mkdir -p "${GITHUB_WORKSPACE}/tmp"
