@@ -1,6 +1,6 @@
 module github.com/Azure/skewer
 
-go 1.18
+go 1.25
 
 require (
 	github.com/Azure/azure-sdk-for-go v68.0.0+incompatible
