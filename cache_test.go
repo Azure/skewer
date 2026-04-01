@@ -418,7 +418,7 @@ func Test_Cache_GetAvailabilityZones(t *testing.T) { //nolint:funlen
 					return a < b
 				}),
 			}...); diff != "" {
-				t.Errorf(diff)
+				t.Errorf("%s", diff)
 			}
 		})
 	}
@@ -568,7 +568,7 @@ func Test_Cache_GetVirtualMachineAvailabilityZonesForSize(t *testing.T) { //noli
 					return a < b
 				}),
 			}...); diff != "" {
-				t.Fatalf(diff)
+				t.Fatalf("%s", diff)
 			}
 		})
 	}
