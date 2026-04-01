@@ -11,7 +11,7 @@ import (
 	"github.com/Azure/skewer/v2/testdata"
 )
 
-func getSKUs(subscriptionID, region string) (map[string]testdata.SKUInfo, error) {
+func getSKUs(subscriptionID string) (map[string]testdata.SKUInfo, error) {
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
 		return nil, err
@@ -23,8 +23,7 @@ func getSKUs(subscriptionID, region string) (map[string]testdata.SKUInfo, error)
 	}
 
 	ctx := context.Background()
-	filter := fmt.Sprintf("location eq '%s'", region)
-	pager := client.NewListPager(&armcompute.ResourceSKUsClientListOptions{Filter: &filter})
+	pager := client.NewListPager(nil)
 
 	skus := map[string]testdata.SKUInfo{}
 	for pager.More() {
@@ -56,7 +55,7 @@ type SKUInfo struct {
 var SKUData = map[string]SKUInfo{
 {{- range $key, $value := .}}
 	"{{ $key }}": {
-		Size:   "{{ $value.Size }}",
+		Size: "{{ $value.Size }}",
 	},
 {{- end }}
 }
@@ -86,13 +85,7 @@ func main() {
 	// Get the subscription ID from the environment variable or use a default value
 	subscriptionID := os.Getenv("AZURE_SUBSCRIPTION_ID")
 
-	// Get the region from the environment variable or use a default value
-	region := os.Getenv("AZURE_REGION")
-	if region == "" {
-		region = "eastus" // Default region if not provided in the environment variable
-	}
-
-	skus, err := getSKUs(subscriptionID, region)
+	skus, err := getSKUs(subscriptionID)
 	if err != nil {
 		fmt.Println("Error fetching SKUs:", err)
 		return

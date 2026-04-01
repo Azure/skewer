@@ -11,7 +11,7 @@ import (
 	"github.com/Azure/skewer/testdata"
 )
 
-func getSKUs(subscriptionID, region string) (map[string]testdata.SKUInfo, error) {
+func getSKUs(subscriptionID string) (map[string]testdata.SKUInfo, error) {
 	authorizer, err := auth.NewAuthorizerFromCLI()
 	if err != nil {
 		return nil, err
@@ -22,7 +22,7 @@ func getSKUs(subscriptionID, region string) (map[string]testdata.SKUInfo, error)
 	client.Authorizer = authorizer
 
 	// List SKUs for the specified region
-	skuList, err := client.List(context.Background(), region, "")
+	skuList, err := client.List(context.Background(), "", "")
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ type SKUInfo struct {
 var SKUData = map[string]SKUInfo{
 {{- range $key, $value := .}}
 	"{{ $key }}": {
-		Size:   "{{ $value.Size }}",
+		Size: "{{ $value.Size }}",
 	},
 {{- end }}
 }
@@ -81,13 +81,7 @@ func main() {
 	// Get the subscription ID from the environment variable or use a default value
 	subscriptionID := os.Getenv("AZURE_SUBSCRIPTION_ID")
 
-	// Get the region from the environment variable or use a default value
-	region := os.Getenv("AZURE_REGION")
-	if region == "" {
-		region = "eastus" // Default region if not provided in the environment variable
-	}
-
-	skus, err := getSKUs(subscriptionID, region)
+	skus, err := getSKUs(subscriptionID)
 	if err != nil {
 		fmt.Println("Error fetching SKUs:", err)
 		return
