@@ -1,6 +1,6 @@
 module github.com/Azure/skewer/v2
 
-go 1.23.0
+go 1.25
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.19.1
