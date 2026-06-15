@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 // This file adds support for more capabilities based on VM naming conventions that includes vmsize parsing.
@@ -12,7 +13,7 @@ import (
 // fetched using the ResourceSKU API, are not included here. They can be found in sku.go.
 
 var skuSizeScheme = regexp.MustCompile(
-	`^([A-Z])([A-Z]?)([A-Z]?)([0-9]+)-?((?:[0-9]+)?)((?:[abcdeiflmnotspPr]+|C+|NP)?)_?(?:([A-Z]+[0-9]+)_?)?(_cc_)?(_[0-9]+_)?(_MI300X_)?(_H100_)?((?:[vV][1-9])?)?(_Promo)?$`,
+	`^([A-Z])([A-Z]?)([A-Z]?)([0-9]+)-?((?:[0-9]+)?)((?:[abcdeiflmnotspPr]+|C+|NP)?)_?(?:(xl_[A-Z]+[0-9]+[A-Z]*|[A-Z]+[0-9]+)_?)?(_cc_)?(_[0-9]+_)?(_MI300X_)?(_H100_)?((?:[vV][1-9])?)?(_Promo)?$`,
 )
 
 // unParsableVMSizes map holds vmSize strings that cannot be easily parsed with skuSizeScheme.
@@ -102,10 +103,16 @@ func GetVMSize(vmSizeName string) (*VMSizeType, error) {
 
 	// [Accelerator Type]*
 	// _?: Optionally captures an underscore.
-	// (?:([A-Z][0-9]+)_?)?: Optionally captures a pattern that starts with an uppercase letter followed by digits,
-	// followed by an optional underscore.
+	// (?:(xl_[A-Z]+[0-9]+[A-Z]*|[A-Z]+[0-9]+)_?)?: Optionally captures the accelerator type.
+	// The first alternative matches GPU SKUs that prefix the accelerator with a size
+	// descriptor and may include trailing letters (e.g. "xl_RTXPRO6000BSE" in
+	// NC288ds_xl_RTXPRO6000BSE_v6); the second matches the common "<letters><digits>"
+	// form (e.g. "A100", "T4"). A trailing optional underscore is also captured.
 	if len(parts[7]) > 0 {
-		vmSize.AcceleratorType = &parts[7]
+		// Strip the optional size descriptor (e.g. "xl_") so AcceleratorType reflects
+		// the accelerator name only.
+		accelerator := strings.TrimPrefix(parts[7], "xl_")
+		vmSize.AcceleratorType = &accelerator
 	}
 
 	// [Confidential Child Capability]* - only AKS
