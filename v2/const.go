@@ -57,6 +57,8 @@ const (
 	SupportedEphemeralOSDiskPlacements = "SupportedEphemeralOSDiskPlacements"
 	// NvmeDiskSizeInMiB identifies the NVMe disk size in MiB.
 	NvmeDiskSizeInMiB = "NvmeDiskSizeInMiB"
+	// LowPriorityCapable identifies the capability for low priority VM support.
+	LowPriorityCapable = "LowPriorityCapable"
 )
 
 const (
