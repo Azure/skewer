@@ -121,6 +121,11 @@ func (s *SKU) IsPremiumIO() bool {
 	return s.HasCapability(CapabilityPremiumIO)
 }
 
+// IsLowPriorityCapable returns true when the VM size supports low priority VMs.
+func (s *SKU) IsLowPriorityCapable() bool {
+	return s.HasCapability(LowPriorityCapable)
+}
+
 // IsHyperVGen1Supported returns true when the VM size supports
 // accelerated networking.
 func (s *SKU) IsHyperVGen1Supported() bool {

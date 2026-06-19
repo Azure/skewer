@@ -776,3 +776,45 @@ func Test_SKU_Includes(t *testing.T) {
 		})
 	}
 }
+
+func Test_SKU_IsLowPriorityCapable(t *testing.T) {
+	cases := map[string]struct {
+		sku    armcompute.ResourceSKU
+		expect bool
+	}{
+		"should return false when no capabilities": {
+			sku: armcompute.ResourceSKU{},
+		},
+		"should return false when capability is False": {
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
+					{
+						Name:  to.Ptr(LowPriorityCapable),
+						Value: to.Ptr("False"),
+					},
+				},
+			},
+		},
+		"should return true when capability is True": {
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
+					{
+						Name:  to.Ptr(LowPriorityCapable),
+						Value: to.Ptr("True"),
+					},
+				},
+			},
+			expect: true,
+		},
+	}
+
+	for name, tc := range cases {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			sku := SKU(tc.sku)
+			if diff := cmp.Diff(tc.expect, sku.IsLowPriorityCapable()); diff != "" {
+				t.Error(diff)
+			}
+		})
+	}
+}
