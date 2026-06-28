@@ -1,6 +1,6 @@
 package skewer
 
-import "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v7"
+import "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v8"
 
 // Wrap takes an array of compute resource skus and wraps them into an
 // array of our richer type.
