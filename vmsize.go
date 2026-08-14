@@ -13,7 +13,7 @@ import (
 // fetched using the ResourceSKU API, are not included here. They can be found in sku.go.
 
 var skuSizeScheme = regexp.MustCompile(
-	`^([A-Z])([A-Z]?)([A-Z]?)([0-9]+)-?((?:[0-9]+)?)((?:[abcdeiflmnotspPr]+|C+|NP)?)_?(?:(xl_[A-Z]+[0-9]+[A-Z]*|[A-Z]+[0-9]+)_?)?(_cc_)?(_[0-9]+_)?(_MI300X_)?(_H100_)?((?:[vV][1-9])?)?(_Promo)?$`,
+	`^([A-Z])([A-Z]?)([A-Z]?)([0-9]+)-?((?:[0-9]+)?)((?:[abcdeiflmnotspPr]+|C+|NP)?)_?(?:((?:xl_)?[A-Z]+[0-9]+[A-Z]*)_?)?(_cc_)?(_[0-9]+_)?(_MI300X_)?(_H100_)?((?:[vV][1-9])?)?(_Promo)?$`,
 )
 
 // unParsableVMSizes map holds vmSize strings that cannot be easily parsed with skuSizeScheme.
@@ -103,11 +103,11 @@ func GetVMSize(vmSizeName string) (*VMSizeType, error) {
 
 	// [Accelerator Type]*
 	// _?: Optionally captures an underscore.
-	// (?:(xl_[A-Z]+[0-9]+[A-Z]*|[A-Z]+[0-9]+)_?)?: Optionally captures the accelerator type.
-	// The first alternative matches GPU SKUs that prefix the accelerator with a size
-	// descriptor and may include trailing letters (e.g. "xl_RTXPRO6000BSE" in
-	// NC288ds_xl_RTXPRO6000BSE_v6); the second matches the common "<letters><digits>"
-	// form (e.g. "A100", "T4"). A trailing optional underscore is also captured.
+	// (?:((?:xl_)?[A-Z]+[0-9]+[A-Z]*)_?)?: Optionally captures the accelerator type.
+	// Covers the common "<letters><digits>" form (e.g. "A100", "T4"), names with
+	// trailing letters (e.g. "MI300X"), and the optional "xl_" size descriptor
+	// used by some GPU SKUs (e.g. "xl_RTXPRO6000BSE" in NC288ds_xl_RTXPRO6000BSE_v6).
+	// A trailing optional underscore is also captured.
 	if len(parts[7]) > 0 {
 		// Strip the optional size descriptor (e.g. "xl_") so AcceleratorType reflects
 		// the accelerator name only.
