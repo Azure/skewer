@@ -396,6 +396,23 @@ var testCases = []struct {
 		expectedVM: nil,
 		err:        fmt.Errorf("could not parse VM size inValid"),
 	},
+	{
+		name: "Standard_ND128isr_NDR_GB200_v6",
+		size: "ND128isr_NDR_GB200_v6",
+		expectedVM: &VMSizeType{
+			Family:                      "N",
+			Subfamily:                   to.Ptr("D"),
+			Cpus:                        "128",
+			CpusConstrained:             nil,
+			AdditiveFeatures:            []rune{'i', 's', 'r'},
+			AcceleratorType:             to.Ptr("GB200"),
+			ConfidentialChildCapability: false,
+			Version:                     "v6",
+			PromoVersion:                false,
+			Series:                      "NDisr_v6",
+		},
+		err: nil,
+	},
 }
 
 // Test_GetVMSize tests the GetVMSize() function.
