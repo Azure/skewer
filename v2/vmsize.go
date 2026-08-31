@@ -16,6 +16,43 @@ var skuSizeScheme = regexp.MustCompile(
 	`^([A-Z])([A-Z]?)([A-Z]?)([0-9]+)-?((?:[0-9]+)?)((?:[abcdeiflmnotspPr]+|C+|NP)?)_?(?:NDR_)?(?:((?:xl_)?[A-Z]+[0-9]+[A-Z]*)_?)?(_cc_)?(_[0-9]+_)?(_MI300X_)?(_H100_)?((?:[vV][1-9])?)?(_Promo)?$`,
 )
 
+// Azure doesn't have the nested virtualization information.
+// Thus temporarily keep this nested virtualization check code here.
+// Once Azure has the information, update to use it directly.
+var nestedVirtualizationEnabledSKUs = []*regexp.Regexp{
+	regexp.MustCompile(`^standard_d\d+s?_v3$`),                            // d<digits>[s] https://learn.microsoft.com/en-us/azure/virtual-machines/dv3-dsv3-series
+	regexp.MustCompile(`^standard_d\d+s?_v4$`),                            // d<digits>[s] https://learn.microsoft.com/en-us/azure/virtual-machines/dv4-dsv4-series
+	regexp.MustCompile(`^standard_d\d+s?_v5$`),                            // d<digits>[s] https://learn.microsoft.com/en-us/azure/virtual-machines/dv5-dsv5-series
+	regexp.MustCompile(`^standard_d\d+ds?_v4$`),                           // d<digits>d[s] https://learn.microsoft.com/en-us/azure/virtual-machines/ddv4-ddsv4-series
+	regexp.MustCompile(`^standard_d\d+ds?_v5$`),                           // d<digits>d[s] https://learn.microsoft.com/en-us/azure/virtual-machines/ddv5-ddsv5-series
+	regexp.MustCompile(`^standard_d\d+ad?s_v5$`),                          // d<digits>a[d]s https://learn.microsoft.com/en-us/azure/virtual-machines/dasv5-dadsv5-series
+	regexp.MustCompile(`^standard_d\d+l?ds?_v5$`),                         // d<digits>d[s] https://learn.microsoft.com/en-us/azure/virtual-machines/ddv5-ddsv5-series
+	regexp.MustCompile(`^standard_d\d+l?s_v5$`),                           // d<digits>l https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/general-purpose/dlsv5-series
+	regexp.MustCompile(`^standard_d\d+(s|ds|ls|lds|as|ads|als|alds)_v6$`), // New v6 patterns (precise to avoid 'p' variants)
+	regexp.MustCompile(`^standard_dc\d+ad?s_cc_v5$`),                      // dc<digits>a[d]s https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/general-purpose/dcasccv5-series
+	regexp.MustCompile(`^standard_d\d+ads_v7$`),                           // d<digits>ads https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/general-purpose/dadsv7-series
+
+	regexp.MustCompile(`^standard_f\d+s_v2$`),       // f<digits>s https://learn.microsoft.com/en-us/azure/virtual-machines/fsv2-series
+	regexp.MustCompile(`^standard_f\d+a[lm]?s_v6$`), // f<digits>a[l,m]s_v6 https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/compute-optimized/falsv6-series
+	regexp.MustCompile(`^standard_fx\d+mds$`),       // fx<digits>mds https://learn.microsoft.com/en-us/azure/virtual-machines/fx-series
+	regexp.MustCompile(`^standard_fx\d+md?s_v2$`),   // fx<digits>m[d]s_v2 https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/compute-optimized/fx-family
+
+	regexp.MustCompile(`^standard_e\d+i?s?_v3$`),      // e<digits>[i][s] https://learn.microsoft.com/en-us/azure/virtual-machines/ev3-esv3-series
+	regexp.MustCompile(`^standard_e\d+i?s?_v4$`),      // e<digits>[i][s] https://learn.microsoft.com/en-us/azure/virtual-machines/ev4-esv4-series
+	regexp.MustCompile(`^standard_e\d+i?s?_v5$`),      // e<digits>[i][s] https://learn.microsoft.com/en-us/azure/virtual-machines/ev5-esv5-series
+	regexp.MustCompile(`^standard_e\d+(i|a)?d?s_v6$`), // e<digits>[i,a][d]s_v6 https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/memory-optimized/esv6-series
+	regexp.MustCompile(`^standard_e\d+i?ds?_v4$`),     // e<digits>[i]d[s] https://learn.microsoft.com/en-us/azure/virtual-machines/edv4-edsv4-series
+	regexp.MustCompile(`^standard_e\d+i?ds?_v5$`),     // e<digits>[i]d[s] https://learn.microsoft.com/en-us/azure/virtual-machines/edv5-edsv5-series
+	regexp.MustCompile(`^standard_e\d+i?ad?s_v5$`),    // e<digits>[i]a[d]s https://learn.microsoft.com/en-us/azure/virtual-machines/easv5-eadsv5-series
+	regexp.MustCompile(`^standard_e\d+bd?s_v5$`),      // e<digits>b[d]s https://learn.microsoft.com/en-us/azure/virtual-machines/ebdsv5-ebsv5-series
+	regexp.MustCompile(`^standard_ec\d+ad?s_cc_v5$`),  // ec<digits>a[d]s_cc_v5 https://learn.microsoft.com/en-us/azure/virtual-machines/ecasccv5-ecadsccv5-series
+
+	regexp.MustCompile(`^standard_m\d+(m?s?|ls|ts)$`), // m<digits>[m,l,t][s] https://learn.microsoft.com/en-us/azure/virtual-machines/m-series
+
+	regexp.MustCompile(`^standard_l\d+s_v3$`),  // l<digits>s https://learn.microsoft.com/en-us/azure/virtual-machines/lsv3-series
+	regexp.MustCompile(`^standard_l\d+as_v3$`), // l<digits>as https://learn.microsoft.com/en-us/azure/virtual-machines/lasv3-series
+}
+
 // unParsableVMSizes map holds vmSize strings that cannot be easily parsed with skuSizeScheme.
 var unParsableVMSizes = map[string]VMSizeType{
 	"M416s_8_v2": {
@@ -33,18 +70,19 @@ var unParsableVMSizes = map[string]VMSizeType{
 }
 
 type VMSizeType struct {
-	Family                      string
-	Subfamily                   *string
-	Cpus                        string
-	CpusConstrained             *string
-	AdditiveFeatures            []rune
-	AcceleratorType             *string
-	ConfidentialChildCapability bool
-	Version                     string
-	PromoVersion                bool
-	MI300Series                 bool
-	H100Series                  bool
-	Series                      string
+	Family                        string
+	Subfamily                     *string
+	Cpus                          string
+	CpusConstrained               *string
+	AdditiveFeatures              []rune
+	AcceleratorType               *string
+	ConfidentialChildCapability   bool
+	NestedVirtualizationSupported bool
+	Version                       string
+	PromoVersion                  bool
+	MI300Series                   bool
+	H100Series                    bool
+	Series                        string
 }
 
 // parseVMSize parses the VM size and returns the parts as a map.
@@ -67,6 +105,8 @@ func GetVMSize(vmSizeName string) (*VMSizeType, error) {
 		}
 		return nil, err
 	}
+
+	vmSize.NestedVirtualizationSupported = supportsNestedVirtualization(vmSizeName)
 
 	// [Family] - ([A-Z]): Captures a single uppercase letter.
 	vmSize.Family = parts[1]
@@ -164,4 +204,14 @@ func GetVMSize(vmSizeName string) (*VMSizeType, error) {
 	vmSize.Series = vmSize.Family + subfamily + string(vmSize.AdditiveFeatures) + version
 
 	return &vmSize, nil
+}
+
+func supportsNestedVirtualization(vmSizeName string) bool {
+	standardizedVMSizeName := "standard_" + strings.ToLower(vmSizeName)
+	for _, pattern := range nestedVirtualizationEnabledSKUs {
+		if pattern.MatchString(standardizedVMSizeName) {
+			return true
+		}
+	}
+	return false
 }
