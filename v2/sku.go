@@ -138,6 +138,12 @@ func (s *SKU) IsHyperVGen2Supported() bool {
 	return s.HasCapabilityWithSeparator(HyperVGenerations, HyperVGeneration2)
 }
 
+// IsNestedVirtualizationSupported returns true when the VM size supports nested virtualization.
+func (s *SKU) IsNestedVirtualizationSupported() bool {
+	return supportsNestedVirtualization(s.GetSize()) ||
+		s.HasCapabilityWithSeparator(SupportedVirtualizationTypes, NestedVirtualization)
+}
+
 // GetCPUArchitectureType returns cpu arch for the VM size.
 // It errors if value is nil or not found.
 func (s *SKU) GetCPUArchitectureType() (string, error) {

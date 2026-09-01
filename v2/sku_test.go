@@ -818,3 +818,44 @@ func Test_SKU_IsLowPriorityCapable(t *testing.T) {
 		})
 	}
 }
+
+func Test_SKU_IsNestedVirtualizationSupported(t *testing.T) {
+	cases := map[string]struct {
+		sku    armcompute.ResourceSKU
+		expect bool
+	}{
+		"name-based fallback": {
+			sku:    armcompute.ResourceSKU{Size: to.Ptr("D2_v3")},
+			expect: true,
+		},
+		"API capability": {
+			sku: armcompute.ResourceSKU{
+				Size: to.Ptr("D2ds_v7"),
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
+					{Name: to.Ptr(SupportedVirtualizationTypes), Value: to.Ptr(NestedVirtualization)},
+				},
+			},
+			expect: true,
+		},
+		"unsupported": {
+			sku: armcompute.ResourceSKU{Size: to.Ptr("D4ps_v6")},
+		},
+		"unrelated virtualization type": {
+			sku: armcompute.ResourceSKU{
+				Size: to.Ptr("D2ds_v7"),
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
+					{Name: to.Ptr(SupportedVirtualizationTypes), Value: to.Ptr("OtherVirtualization")},
+				},
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			sku := SKU(tc.sku)
+			if diff := cmp.Diff(tc.expect, sku.IsNestedVirtualizationSupported()); diff != "" {
+				t.Errorf("unexpected support result (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
