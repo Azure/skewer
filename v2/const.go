@@ -59,6 +59,10 @@ const (
 	NvmeDiskSizeInMiB = "NvmeDiskSizeInMiB"
 	// LowPriorityCapable identifies the capability for low priority VM support.
 	LowPriorityCapable = "LowPriorityCapable"
+	// SupportedVirtualizationTypes identifies the virtualization types supported by the VM SKU.
+	SupportedVirtualizationTypes = "SupportedVirtualizationTypes"
+	// NestedVirtualization identifies nested virtualization support.
+	NestedVirtualization = "NestedVirtualization"
 )
 
 const (
