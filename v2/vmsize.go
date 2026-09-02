@@ -70,6 +70,13 @@ var nestedVirtualizationEnabledSKUs = []*regexp.Regexp{
 	regexp.MustCompile(`^standard_nv\d+ads_v710_v5$`), // nv<digits>ads_V710_v5 https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nvadsv710-v5-series
 }
 
+// Azure only reports SNP confidential computing support for new SKUs.
+// Keep this name-based check as a fallback when the capability is absent.
+var nestedSNPEnabledSKUs = []*regexp.Regexp{
+	regexp.MustCompile(`^standard_dc\d+ad?s_cc_v5$`), // dc<digits>a[d]s https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/general-purpose/dcasccv5-series
+	regexp.MustCompile(`^standard_ec\d+ad?s_cc_v5$`), // ec<digits>a[d]s https://learn.microsoft.com/en-us/azure/virtual-machines/ecasccv5-ecadsccv5-series
+}
+
 // unParsableVMSizes map holds vmSize strings that cannot be easily parsed with skuSizeScheme.
 var unParsableVMSizes = map[string]VMSizeType{
 	"M416s_8_v2": {
@@ -255,6 +262,16 @@ func GetVMSize(vmSizeName string) (*VMSizeType, error) {
 func supportsNestedVirtualization(vmSizeName string) bool {
 	standardizedVMSizeName := "standard_" + strings.ToLower(vmSizeName)
 	for _, pattern := range nestedVirtualizationEnabledSKUs {
+		if pattern.MatchString(standardizedVMSizeName) {
+			return true
+		}
+	}
+	return false
+}
+
+func supportsNestedSNP(vmSizeName string) bool {
+	standardizedVMSizeName := "standard_" + strings.ToLower(vmSizeName)
+	for _, pattern := range nestedSNPEnabledSKUs {
 		if pattern.MatchString(standardizedVMSizeName) {
 			return true
 		}

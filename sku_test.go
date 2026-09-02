@@ -861,3 +861,60 @@ func Test_SKU_IsNestedVirtualizationSupported(t *testing.T) {
 		})
 	}
 }
+
+func Test_SKU_IsConfidentialComputingTypeSNP(t *testing.T) {
+	cases := map[string]struct {
+		sku    compute.ResourceSku
+		expect bool
+	}{
+		"DCas name-based fallback": {
+			sku:    compute.ResourceSku{Size: to.StringPtr("DC4as_cc_v5")},
+			expect: true,
+		},
+		"DCads name-based fallback": {
+			sku:    compute.ResourceSku{Size: to.StringPtr("DC4ads_cc_v5")},
+			expect: true,
+		},
+		"ECas name-based fallback": {
+			sku:    compute.ResourceSku{Size: to.StringPtr("EC96as_cc_v5")},
+			expect: true,
+		},
+		"ECads name-based fallback": {
+			sku:    compute.ResourceSku{Size: to.StringPtr("EC96ads_cc_v5")},
+			expect: true,
+		},
+		"API capability": {
+			sku: compute.ResourceSku{
+				Size: to.StringPtr("DC4as_v5"),
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{Name: to.StringPtr(CapabilityConfidentialComputingType), Value: to.StringPtr(ConfidentialComputingTypeSNP)},
+				},
+			},
+			expect: true,
+		},
+		"non-confidential SKU": {
+			sku: compute.ResourceSku{Size: to.StringPtr("D2ds_v7")},
+		},
+		"unsupported confidential type": {
+			sku: compute.ResourceSku{
+				Size: to.StringPtr("D2ds_v7"),
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{Name: to.StringPtr(CapabilityConfidentialComputingType), Value: to.StringPtr("TDX")},
+				},
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			sku := SKU(tc.sku)
+			actual, err := sku.IsConfidentialComputingTypeSNP()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if diff := cmp.Diff(tc.expect, actual); diff != "" {
+				t.Errorf("unexpected SNP result (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
