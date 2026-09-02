@@ -502,7 +502,8 @@ func (s *SKU) HasLocationRestriction(location string) bool {
 
 // IsConfidentialComputingTypeSNP return true if ConfidentialComputingType is SNP for this sku.
 func (s *SKU) IsConfidentialComputingTypeSNP() (bool, error) {
-	return s.HasCapabilityWithSeparator(CapabilityConfidentialComputingType, ConfidentialComputingTypeSNP), nil
+	return supportsNestedSNP(s.GetSize()) ||
+		s.HasCapabilityWithSeparator(CapabilityConfidentialComputingType, ConfidentialComputingTypeSNP), nil
 }
 
 // Official documentation for Trusted Launch states:
