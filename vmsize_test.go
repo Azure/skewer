@@ -42,7 +42,7 @@ var testCases = []struct {
 			Cpus:                        "16",
 			CpusConstrained:             nil,
 			AdditiveFeatures:            []rune{'a', 's'},
-			AcceleratorType:             nil,
+			AcceleratorType:             to.Ptr("MI25"),
 			ConfidentialChildCapability: false,
 			Version:                     "v4",
 			PromoVersion:                false,
@@ -433,6 +433,41 @@ func Test_GetVMSize(t *testing.T) {
 		a.Equal(test.expectedVM.ConfidentialChildCapability, vmSize.ConfidentialChildCapability)
 		a.Equal(test.expectedVM.Version, vmSize.Version)
 		a.Equal(test.expectedVM.PromoVersion, vmSize.PromoVersion)
+	}
+}
+
+// TestAcceleratorTypeBySize checks the sizes whose name carries no accelerator.
+// The regex finds nothing for these, so the value has to come from the lookup.
+func TestAcceleratorTypeBySize(t *testing.T) {
+	expected := map[string]string{
+		"NC6s_v3":    "V100",
+		"NC12s_v3":   "V100",
+		"NC24s_v3":   "V100",
+		"NC24rs_v3":  "V100",
+		"ND40rs_v2":  "V100",
+		"ND96asr_v4": "A100",
+		"NV12s_v3":   "M60",
+		"NV24s_v3":   "M60",
+		"NV48s_v3":   "M60",
+		"NV4as_v4":   "MI25",
+		"NV8as_v4":   "MI25",
+		"NV16as_v4":  "MI25",
+		"NV32as_v4":  "MI25",
+	}
+
+	for size, accelerator := range expected {
+		t.Run(size, func(t *testing.T) {
+			vmSize, err := GetVMSize(size)
+			assert.NoError(t, err)
+			assert.Equal(t, to.Ptr(accelerator), vmSize.AcceleratorType)
+		})
+
+		t.Run(size+"_Promo", func(t *testing.T) {
+			vmSize, err := GetVMSize(size + "_Promo")
+			assert.NoError(t, err)
+			assert.Equal(t, to.Ptr(accelerator), vmSize.AcceleratorType)
+			assert.True(t, vmSize.PromoVersion)
+		})
 	}
 }
 

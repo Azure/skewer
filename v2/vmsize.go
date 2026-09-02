@@ -86,6 +86,36 @@ var unParsableVMSizes = map[string]VMSizeType{
 	},
 }
 
+// acceleratorTypeBySize maps sizes whose name carries no accelerator to their GPU.
+// AcceleratorType is parsed out of the size name, so these would be nil otherwise.
+// The SKUs API only gives a GPU count, no model. Some family strings do carry the
+// chip, but not the ones listed here, and the format varies too much to parse.
+// Values come from the per-series pages on MS Learn.
+var acceleratorTypeBySize = map[string]string{
+	// https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/ncv3-series
+	"NC6s_v3":   "V100",
+	"NC12s_v3":  "V100",
+	"NC24s_v3":  "V100",
+	"NC24rs_v3": "V100",
+
+	// https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/ndv2-series
+	"ND40rs_v2": "V100",
+
+	// https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/ndasra100v4-series
+	"ND96asr_v4": "A100",
+
+	// https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nvv3-series
+	"NV12s_v3": "M60",
+	"NV24s_v3": "M60",
+	"NV48s_v3": "M60",
+
+	// https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nvv4-series
+	"NV4as_v4":  "MI25",
+	"NV8as_v4":  "MI25",
+	"NV16as_v4": "MI25",
+	"NV32as_v4": "MI25",
+}
+
 type VMSizeType struct {
 	Family                      string
 	Subfamily                   *string
@@ -166,6 +196,8 @@ func GetVMSize(vmSizeName string) (*VMSizeType, error) {
 		// Strip the optional size descriptor (e.g. "xl_") so AcceleratorType reflects
 		// the accelerator name only.
 		accelerator := strings.TrimPrefix(parts[7], "xl_")
+		vmSize.AcceleratorType = &accelerator
+	} else if accelerator, ok := acceleratorTypeBySize[strings.TrimSuffix(vmSizeName, "_Promo")]; ok {
 		vmSize.AcceleratorType = &accelerator
 	}
 
