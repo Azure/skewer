@@ -74,6 +74,7 @@ var nestedVirtualizationEnabledSKUs = []*regexp.Regexp{
 // Infer SNP confidential child support from the VM size name.
 var nestedSNPEnabledSKUs = []*regexp.Regexp{
 	regexp.MustCompile(`^standard_dc\d+ad?s_cc_v5$`), // dc<digits>a[d]s https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/general-purpose/dcasccv5-series
+	regexp.MustCompile(`^standard_dc\d+as_cc_v6$`),   // dc<digits>as_cc_v6
 	regexp.MustCompile(`^standard_ec\d+ad?s_cc_v5$`), // ec<digits>a[d]s https://learn.microsoft.com/en-us/azure/virtual-machines/ecasccv5-ecadsccv5-series
 }
 
