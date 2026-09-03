@@ -70,8 +70,8 @@ var nestedVirtualizationEnabledSKUs = []*regexp.Regexp{
 	regexp.MustCompile(`^standard_nv\d+ads_v710_v5$`), // nv<digits>ads_V710_v5 https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nvadsv710-v5-series
 }
 
-// Azure only reports SNP confidential computing support for new SKUs.
-// Keep this name-based check as a fallback when the capability is absent.
+// Azure does not expose a capability for confidential child VM support.
+// Infer SNP confidential child support from the VM size name.
 var nestedSNPEnabledSKUs = []*regexp.Regexp{
 	regexp.MustCompile(`^standard_dc\d+ad?s_cc_v5$`), // dc<digits>a[d]s https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/general-purpose/dcasccv5-series
 	regexp.MustCompile(`^standard_ec\d+ad?s_cc_v5$`), // ec<digits>a[d]s https://learn.microsoft.com/en-us/azure/virtual-machines/ecasccv5-ecadsccv5-series

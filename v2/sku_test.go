@@ -865,22 +865,6 @@ func Test_SKU_IsConfidentialComputingTypeSNP(t *testing.T) {
 		sku    armcompute.ResourceSKU
 		expect bool
 	}{
-		"DCas name-based fallback": {
-			sku:    armcompute.ResourceSKU{Size: to.Ptr("DC4as_cc_v5")},
-			expect: true,
-		},
-		"DCads name-based fallback": {
-			sku:    armcompute.ResourceSKU{Size: to.Ptr("DC4ads_cc_v5")},
-			expect: true,
-		},
-		"ECas name-based fallback": {
-			sku:    armcompute.ResourceSKU{Size: to.Ptr("EC96as_cc_v5")},
-			expect: true,
-		},
-		"ECads name-based fallback": {
-			sku:    armcompute.ResourceSKU{Size: to.Ptr("EC96ads_cc_v5")},
-			expect: true,
-		},
 		"API capability": {
 			sku: armcompute.ResourceSKU{
 				Size: to.Ptr("DC4as_v5"),
@@ -892,6 +876,9 @@ func Test_SKU_IsConfidentialComputingTypeSNP(t *testing.T) {
 		},
 		"non-confidential SKU": {
 			sku: armcompute.ResourceSKU{Size: to.Ptr("D2ds_v7")},
+		},
+		"confidential child is not SNP host": {
+			sku: armcompute.ResourceSKU{Size: to.Ptr("DC4as_cc_v5")},
 		},
 		"unsupported confidential type": {
 			sku: armcompute.ResourceSKU{
@@ -912,6 +899,29 @@ func Test_SKU_IsConfidentialComputingTypeSNP(t *testing.T) {
 			}
 			if diff := cmp.Diff(tc.expect, actual); diff != "" {
 				t.Errorf("unexpected SNP result (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func Test_SKU_IsNestedSNPSupported(t *testing.T) {
+	cases := map[string]struct {
+		size   string
+		expect bool
+	}{
+		"DCas confidential child":  {size: "DC4as_cc_v5", expect: true},
+		"DCads confidential child": {size: "DC4ads_cc_v5", expect: true},
+		"ECas confidential child":  {size: "EC96as_cc_v5", expect: true},
+		"ECads confidential child": {size: "EC96ads_cc_v5", expect: true},
+		"SNP host":                 {size: "DC4as_v5"},
+		"non-confidential SKU":     {size: "D2ds_v7"},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			sku := SKU(armcompute.ResourceSKU{Size: to.Ptr(tc.size)})
+			if diff := cmp.Diff(tc.expect, sku.IsNestedSNPSupported()); diff != "" {
+				t.Errorf("unexpected child SNP result (-want +got):\n%s", diff)
 			}
 		})
 	}
