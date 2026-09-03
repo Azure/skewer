@@ -2,7 +2,9 @@ package skewer
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v8"
@@ -245,6 +247,119 @@ func Test_SKU_GetCapabilityString(t *testing.T) {
 				if diff := cmp.Diff(tc.expect, result); diff != "" {
 					t.Error(diff)
 				}
+			}
+		})
+	}
+}
+
+func Test_SKU_GetCapabilityDate(t *testing.T) {
+	tests := map[string]struct {
+		capabilities []*armcompute.ResourceSKUCapabilities
+		capability   string
+		want         time.Time
+		wantError    error
+	}{
+		"missing capability": {
+			capability: RetirementDateUTC,
+			wantError:  &ErrCapabilityNotFound{},
+		},
+		"nil capability value": {
+			capabilities: []*armcompute.ResourceSKUCapabilities{
+				{
+					Name: to.Ptr(RetirementDateUTC),
+				},
+			},
+			capability: RetirementDateUTC,
+			wantError:  &ErrCapabilityValueNil{},
+		},
+		"invalid capability value": {
+			capabilities: []*armcompute.ResourceSKUCapabilities{
+				{
+					Name:  to.Ptr(RetirementDateUTC),
+					Value: to.Ptr("not-a-date"),
+				},
+			},
+			capability: RetirementDateUTC,
+			wantError:  &ErrCapabilityValueParse{},
+		},
+		"valid capability value with case-insensitive name": {
+			capabilities: []*armcompute.ResourceSKUCapabilities{
+				{
+					Name:  to.Ptr("retirementdateutc"),
+					Value: to.Ptr("08/31/2023"),
+				},
+			},
+			capability: RetirementDateUTC,
+			want:       time.Date(2023, time.August, 31, 0, 0, 0, 0, time.UTC),
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			sku := SKU(armcompute.ResourceSKU{Capabilities: test.capabilities})
+			got, err := sku.GetCapabilityDate(test.capability)
+			if test.wantError != nil {
+				if reflect.TypeOf(err) != reflect.TypeOf(test.wantError) {
+					t.Fatalf("expected error %T, got %v", test.wantError, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if diff := cmp.Diff(test.want, got); diff != "" {
+				t.Error(diff)
+			}
+		})
+	}
+}
+
+func Test_SKU_GetRetirementDate(t *testing.T) {
+	retirementDate := time.Date(2023, time.August, 31, 0, 0, 0, 0, time.UTC)
+	tests := map[string]struct {
+		capabilities []*armcompute.ResourceSKUCapabilities
+		want         *time.Time
+		wantError    bool
+	}{
+		"missing retirement date returns nil": {},
+		"retirement date is returned": {
+			capabilities: []*armcompute.ResourceSKUCapabilities{
+				{
+					Name:  to.Ptr(RetirementDateUTC),
+					Value: to.Ptr("08/31/2023"),
+				},
+			},
+			want: &retirementDate,
+		},
+		"invalid retirement date returns an error": {
+			capabilities: []*armcompute.ResourceSKUCapabilities{
+				{
+					Name:  to.Ptr(RetirementDateUTC),
+					Value: to.Ptr("not-a-date"),
+				},
+			},
+			wantError: true,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			sku := SKU(armcompute.ResourceSKU{Capabilities: test.capabilities})
+			got, err := sku.GetRetirementDate()
+			if test.wantError {
+				if err == nil {
+					t.Fatal("expected an error")
+				}
+				if got != nil {
+					t.Fatalf("expected a nil retirement date, got %v", got)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if diff := cmp.Diff(test.want, got); diff != "" {
+				t.Error(diff)
 			}
 		})
 	}
