@@ -1026,12 +1026,13 @@ func Test_SKU_IsNestedSNPSupported(t *testing.T) {
 		size   string
 		expect bool
 	}{
-		"DCas confidential child":  {size: "DC4as_cc_v5", expect: true},
-		"DCads confidential child": {size: "DC4ads_cc_v5", expect: true},
-		"ECas confidential child":  {size: "EC96as_cc_v5", expect: true},
-		"ECads confidential child": {size: "EC96ads_cc_v5", expect: true},
-		"SNP host":                 {size: "DC4as_v5"},
-		"non-confidential SKU":     {size: "D2ds_v7"},
+		"DCas confidential child":    {size: "DC4as_cc_v5", expect: true},
+		"DCads confidential child":   {size: "DC4ads_cc_v5", expect: true},
+		"DCas v6 confidential child": {size: "DC32as_cc_v6", expect: true},
+		"ECas confidential child":    {size: "EC96as_cc_v5", expect: true},
+		"ECads confidential child":   {size: "EC96ads_cc_v5", expect: true},
+		"SNP host":                   {size: "DC4as_v5"},
+		"non-confidential SKU":       {size: "D2ds_v7"},
 	}
 
 	for name, tc := range cases {
