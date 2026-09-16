@@ -955,6 +955,13 @@ func Test_SKU_IsNestedVirtualizationSupported(t *testing.T) {
 		"unsupported": {
 			sku: armcompute.ResourceSKU{Size: to.Ptr("D4ps_v6")},
 		},
+		"direct virtualization": {
+			sku: armcompute.ResourceSKU{
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
+					{Name: to.Ptr(SupportedVirtualizationTypes), Value: to.Ptr(DirectVirtualization)},
+				},
+			},
+		},
 		"unrelated virtualization type": {
 			sku: armcompute.ResourceSKU{
 				Size: to.Ptr("D2ds_v7"),
@@ -969,6 +976,52 @@ func Test_SKU_IsNestedVirtualizationSupported(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			sku := SKU(tc.sku)
 			if diff := cmp.Diff(tc.expect, sku.IsNestedVirtualizationSupported()); diff != "" {
+				t.Errorf("unexpected support result (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func Test_SKU_IsDirectVirtualizationSupported(t *testing.T) {
+	cases := map[string]struct {
+		sku    armcompute.ResourceSKU
+		expect bool
+	}{
+		"API capability": {
+			sku: armcompute.ResourceSKU{
+				Size: to.Ptr("D32pvds_v7"),
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
+					{Name: to.Ptr(SupportedVirtualizationTypes), Value: to.Ptr(DirectVirtualization)},
+				},
+			},
+			expect: true,
+		},
+		"API capability list": {
+			sku: armcompute.ResourceSKU{
+				Size: to.Ptr("D32pvds_v7"),
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
+					{Name: to.Ptr(SupportedVirtualizationTypes), Value: to.Ptr(NestedVirtualization + "," + DirectVirtualization)},
+				},
+			},
+			expect: true,
+		},
+		"unsupported": {
+			sku: armcompute.ResourceSKU{Size: to.Ptr("D4ps_v6")},
+		},
+		"nested virtualization": {
+			sku: armcompute.ResourceSKU{
+				Size: to.Ptr("D2ds_v7"),
+				Capabilities: []*armcompute.ResourceSKUCapabilities{
+					{Name: to.Ptr(SupportedVirtualizationTypes), Value: to.Ptr(NestedVirtualization)},
+				},
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			sku := SKU(tc.sku)
+			if diff := cmp.Diff(tc.expect, sku.IsDirectVirtualizationSupported()); diff != "" {
 				t.Errorf("unexpected support result (-want +got):\n%s", diff)
 			}
 		})

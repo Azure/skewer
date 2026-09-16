@@ -146,6 +146,11 @@ func (s *SKU) IsNestedVirtualizationSupported() bool {
 		s.HasCapabilityWithSeparator(SupportedVirtualizationTypes, NestedVirtualization)
 }
 
+// IsDirectVirtualizationSupported returns true when the VM size supports direct virtualization.
+func (s *SKU) IsDirectVirtualizationSupported() bool {
+	return s.HasCapabilityWithSeparator(SupportedVirtualizationTypes, DirectVirtualization)
+}
+
 // GetCPUArchitectureType returns cpu arch for the VM size.
 // It errors if value is nil or not found.
 func (s *SKU) GetCPUArchitectureType() (string, error) {

@@ -63,6 +63,8 @@ const (
 	SupportedVirtualizationTypes = "SupportedVirtualizationTypes"
 	// NestedVirtualization identifies nested virtualization support.
 	NestedVirtualization = "NestedVirtualization"
+	// DirectVirtualization identifies direct virtualization support.
+	DirectVirtualization = "DirectVirtualization"
 	// RetirementDateUTC identifies the retirement date for the VM SKU.
 	RetirementDateUTC = "RetirementDateUtc"
 )
