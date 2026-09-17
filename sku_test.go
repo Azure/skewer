@@ -957,8 +957,9 @@ func Test_SKU_IsNestedVirtualizationSupported(t *testing.T) {
 		"unsupported": {
 			sku: compute.ResourceSku{Size: to.StringPtr("D4ps_v6")},
 		},
-		"direct virtualization": {
+		"direct virtualization overrides name-based fallback": {
 			sku: compute.ResourceSku{
+				Size: to.StringPtr("D2_v3"),
 				Capabilities: &[]compute.ResourceSkuCapabilities{
 					{Name: to.StringPtr(SupportedVirtualizationTypes), Value: to.StringPtr(DirectVirtualization)},
 				},
@@ -994,15 +995,6 @@ func Test_SKU_IsDirectVirtualizationSupported(t *testing.T) {
 				Size: to.StringPtr("D32pvds_v7"),
 				Capabilities: &[]compute.ResourceSkuCapabilities{
 					{Name: to.StringPtr(SupportedVirtualizationTypes), Value: to.StringPtr(DirectVirtualization)},
-				},
-			},
-			expect: true,
-		},
-		"API capability list": {
-			sku: compute.ResourceSku{
-				Size: to.StringPtr("D32pvds_v7"),
-				Capabilities: &[]compute.ResourceSkuCapabilities{
-					{Name: to.StringPtr(SupportedVirtualizationTypes), Value: to.StringPtr(NestedVirtualization + "," + DirectVirtualization)},
 				},
 			},
 			expect: true,

@@ -142,13 +142,17 @@ func (s *SKU) IsHyperVGen2Supported() bool {
 
 // IsNestedVirtualizationSupported returns true when the VM size supports nested virtualization.
 func (s *SKU) IsNestedVirtualizationSupported() bool {
-	return supportsNestedVirtualization(s.GetSize()) ||
-		s.HasCapabilityWithSeparator(SupportedVirtualizationTypes, NestedVirtualization)
+	virtualizationType, err := s.GetCapabilityString(SupportedVirtualizationTypes)
+	if err == nil {
+		return strings.EqualFold(virtualizationType, NestedVirtualization)
+	}
+	return supportsNestedVirtualization(s.GetSize())
 }
 
 // IsDirectVirtualizationSupported returns true when the VM size supports direct virtualization.
 func (s *SKU) IsDirectVirtualizationSupported() bool {
-	return s.HasCapabilityWithSeparator(SupportedVirtualizationTypes, DirectVirtualization)
+	virtualizationType, err := s.GetCapabilityString(SupportedVirtualizationTypes)
+	return err == nil && strings.EqualFold(virtualizationType, DirectVirtualization)
 }
 
 // GetCPUArchitectureType returns cpu arch for the VM size.
