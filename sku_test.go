@@ -977,6 +977,43 @@ func Test_SKU_IsNestedVirtualizationSupported(t *testing.T) {
 	}
 }
 
+func Test_SKU_IsDirectVirtualizationSupported(t *testing.T) {
+	cases := map[string]struct {
+		sku    compute.ResourceSku
+		expect bool
+	}{
+		"API capability": {
+			sku: compute.ResourceSku{
+				Size: to.StringPtr("D32pvds_v7"),
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{Name: to.StringPtr(SupportedVirtualizationTypes), Value: to.StringPtr(DirectVirtualization)},
+				},
+			},
+			expect: true,
+		},
+		"unsupported": {
+			sku: compute.ResourceSku{Size: to.StringPtr("D4ps_v6")},
+		},
+		"nested virtualization": {
+			sku: compute.ResourceSku{
+				Size: to.StringPtr("D2ds_v7"),
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{Name: to.StringPtr(SupportedVirtualizationTypes), Value: to.StringPtr(NestedVirtualization)},
+				},
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			sku := SKU(tc.sku)
+			if diff := cmp.Diff(tc.expect, sku.IsDirectVirtualizationSupported()); diff != "" {
+				t.Errorf("unexpected support result (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func Test_SKU_IsConfidentialComputingTypeSNP(t *testing.T) {
 	cases := map[string]struct {
 		sku    compute.ResourceSku
