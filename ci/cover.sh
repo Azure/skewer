@@ -10,16 +10,16 @@ function deps() {
     mkdir -p "${TOOLMOD}"
     pushd "${TOOLMOD}"
     go mod init tools
-    go get -tool github.com/axw/gocov/gocov@latest
-    go get -tool github.com/AlekSi/gocov-xml@latest
-    go get -tool github.com/wadey/gocovmerge@latest
-    go get golang.org/x/tools@latest
+    go get -tool github.com/axw/gocov/gocov@v1.2.1
+    go get -tool github.com/AlekSi/gocov-xml@v1.2.0
+    go get -tool github.com/wadey/gocovmerge@v0.0.0-20160331181800-b5bfa59ec0ad
+    go get golang.org/x/tools@v0.50.0
     go mod tidy
     popd
 }
 
 function init() {
-    export GOTOOLCHAIN=go1.25.0
+    export GOTOOLCHAIN=go1.26.0
     go env
 }
 
