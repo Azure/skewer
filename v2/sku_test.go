@@ -989,6 +989,10 @@ func Test_SKU_IsDirectVirtualizationSupported(t *testing.T) {
 			},
 			expect: true,
 		},
+		"name-based fallback": {
+			sku:    armcompute.ResourceSKU{Size: to.Ptr("NC64as_T4_v3")},
+			expect: true,
+		},
 		"unsupported": {
 			sku: armcompute.ResourceSKU{Size: to.Ptr("D4ps_v6")},
 		},

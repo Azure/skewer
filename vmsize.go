@@ -70,6 +70,11 @@ var nestedVirtualizationEnabledSKUs = []*regexp.Regexp{
 	regexp.MustCompile(`^standard_nv\d+ads_v710_v5$`), // nv<digits>ads_V710_v5 https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nvadsv710-v5-series
 }
 
+// Keep this name-based check as a fallback when the direct virtualization capability is absent.
+var directVirtualizationEnabledSKUs = []*regexp.Regexp{
+	regexp.MustCompile(`^standard_nc\d+as_t4_v3$`), // https://learn.microsoft.com/azure/virtual-machines/sizes/gpu-accelerated/ncast4v3-series
+}
+
 // Azure does not expose a capability for confidential child VM support.
 // Infer SNP confidential child support from the VM size name.
 var nestedSNPEnabledSKUs = []*regexp.Regexp{
@@ -263,6 +268,16 @@ func GetVMSize(vmSizeName string) (*VMSizeType, error) {
 func supportsNestedVirtualization(vmSizeName string) bool {
 	standardizedVMSizeName := "standard_" + strings.ToLower(vmSizeName)
 	for _, pattern := range nestedVirtualizationEnabledSKUs {
+		if pattern.MatchString(standardizedVMSizeName) {
+			return true
+		}
+	}
+	return false
+}
+
+func supportsDirectVirtualization(vmSizeName string) bool {
+	standardizedVMSizeName := "standard_" + strings.ToLower(vmSizeName)
+	for _, pattern := range directVirtualizationEnabledSKUs {
 		if pattern.MatchString(standardizedVMSizeName) {
 			return true
 		}

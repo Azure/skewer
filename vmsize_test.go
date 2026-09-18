@@ -543,3 +543,22 @@ func TestSupportsNestedVirtualization(t *testing.T) {
 		})
 	}
 }
+
+func TestSupportsDirectVirtualization(t *testing.T) {
+	testCases := map[string]bool{
+		"NC4as_T4_v3":    true,
+		"NC8as_T4_v3":    true,
+		"NC16as_T4_v3":   true,
+		"NC64as_T4_v3":   true,
+		"NC64ads_T4_v3":  false,
+		"NC64as_T4_v2":   false,
+		"NC64as_A100_v3": false,
+		"D64as_T4_v3":    false,
+	}
+
+	for vmSizeName, expected := range testCases {
+		t.Run(vmSizeName, func(t *testing.T) {
+			assert.Equal(t, expected, supportsDirectVirtualization(vmSizeName))
+		})
+	}
+}
