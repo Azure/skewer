@@ -991,6 +991,10 @@ func Test_SKU_IsDirectVirtualizationSupported(t *testing.T) {
 			},
 			expect: true,
 		},
+		"name-based fallback": {
+			sku:    compute.ResourceSku{Size: to.StringPtr("NC64as_T4_v3")},
+			expect: true,
+		},
 		"unsupported": {
 			sku: compute.ResourceSku{Size: to.StringPtr("D4ps_v6")},
 		},
