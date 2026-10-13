@@ -1042,7 +1042,7 @@ func Test_SKU_IsConfidentialComputingTypeSNP(t *testing.T) {
 			sku: compute.ResourceSku{
 				Size: to.StringPtr("D2ds_v7"),
 				Capabilities: &[]compute.ResourceSkuCapabilities{
-					{Name: to.StringPtr(CapabilityConfidentialComputingType), Value: to.StringPtr("TDX")},
+					{Name: to.StringPtr(CapabilityConfidentialComputingType), Value: to.StringPtr(ConfidentialComputingTypeTDX)},
 				},
 			},
 		},
