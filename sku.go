@@ -537,9 +537,14 @@ func (s *SKU) HasLocationRestriction(location string) bool {
 	return false
 }
 
-// IsConfidentialComputingTypeSNP return true if ConfidentialComputingType is SNP for this sku.
+// IsConfidentialComputingTypeSNP returns true if ConfidentialComputingType is SNP for this sku.
 func (s *SKU) IsConfidentialComputingTypeSNP() (bool, error) {
 	return s.HasCapabilityWithSeparator(CapabilityConfidentialComputingType, ConfidentialComputingTypeSNP), nil
+}
+
+// IsConfidentialComputingTypeTDX returns true if ConfidentialComputingType is TDX for this sku.
+func (s *SKU) IsConfidentialComputingTypeTDX() (bool, error) {
+	return s.HasCapabilityWithSeparator(CapabilityConfidentialComputingType, ConfidentialComputingTypeTDX), nil
 }
 
 // IsNestedSNPSupported returns true if the SKU supports an SNP confidential child VM.
