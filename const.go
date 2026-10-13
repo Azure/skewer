@@ -49,8 +49,10 @@ const (
 	CapabilityTrustedLaunchDisabled = "TrustedLaunchDisabled"
 	// CapabilityConfidentialComputingType identifies the type of ConfidentialComputing.
 	CapabilityConfidentialComputingType = "ConfidentialComputingType"
-	// ConfidentialComputingTypeSNP denoted the "SNP" ConfidentialComputing.
+	// ConfidentialComputingTypeSNP denotes the "SNP" ConfidentialComputing type.
 	ConfidentialComputingTypeSNP = "SNP"
+	// ConfidentialComputingTypeTDX denotes the "TDX" ConfidentialComputing type.
+	ConfidentialComputingTypeTDX = "TDX"
 	// DiskControllerTypes identifies the disk controller types supported by the VM SKU.
 	DiskControllerTypes = "DiskControllerTypes"
 	// SupportedEphemeralOSDiskPlacements identifies supported ephemeral OS disk placements.

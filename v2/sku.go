@@ -504,6 +504,11 @@ func (s *SKU) IsConfidentialComputingTypeSNP() (bool, error) {
 	return s.HasCapabilityWithSeparator(CapabilityConfidentialComputingType, ConfidentialComputingTypeSNP), nil
 }
 
+// IsConfidentialComputingTypeTDX returns true if ConfidentialComputingType is TDX for this sku.
+func (s *SKU) IsConfidentialComputingTypeTDX() (bool, error) {
+	return s.HasCapabilityWithSeparator(CapabilityConfidentialComputingType, ConfidentialComputingTypeTDX), nil
+}
+
 // IsNestedSNPSupported returns true if the SKU supports an SNP confidential child VM.
 func (s *SKU) IsNestedSNPSupported() bool {
 	return supportsNestedSNP(s.GetSize())

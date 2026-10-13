@@ -1038,11 +1038,11 @@ func Test_SKU_IsConfidentialComputingTypeSNP(t *testing.T) {
 		"confidential child is not SNP host": {
 			sku: compute.ResourceSku{Size: to.StringPtr("DC4as_cc_v5")},
 		},
-		"unsupported confidential type": {
+		"differnet confidential type": {
 			sku: compute.ResourceSku{
 				Size: to.StringPtr("D2ds_v7"),
 				Capabilities: &[]compute.ResourceSkuCapabilities{
-					{Name: to.StringPtr(CapabilityConfidentialComputingType), Value: to.StringPtr("TDX")},
+					{Name: to.StringPtr(CapabilityConfidentialComputingType), Value: to.StringPtr(ConfidentialComputingTypeTDX)},
 				},
 			},
 		},
@@ -1057,6 +1057,47 @@ func Test_SKU_IsConfidentialComputingTypeSNP(t *testing.T) {
 			}
 			if diff := cmp.Diff(tc.expect, actual); diff != "" {
 				t.Errorf("unexpected SNP result (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func Test_SKU_IsConfidentialComputingTypeTDX(t *testing.T) {
+	cases := map[string]struct {
+		sku    compute.ResourceSku
+		expect bool
+	}{
+		"API capability": {
+			sku: compute.ResourceSku{
+				Size: to.StringPtr("DC4es_v5"),
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{Name: to.StringPtr(CapabilityConfidentialComputingType), Value: to.StringPtr(ConfidentialComputingTypeTDX)},
+				},
+			},
+			expect: true,
+		},
+		"non-confidential SKU": {
+			sku: compute.ResourceSku{Size: to.StringPtr("D2ds_v7")},
+		},
+		"different confidential type": {
+			sku: compute.ResourceSku{
+				Size: to.StringPtr("DC4as_v5"),
+				Capabilities: &[]compute.ResourceSkuCapabilities{
+					{Name: to.StringPtr(CapabilityConfidentialComputingType), Value: to.StringPtr(ConfidentialComputingTypeSNP)},
+				},
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			sku := SKU(tc.sku)
+			actual, err := sku.IsConfidentialComputingTypeTDX()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if diff := cmp.Diff(tc.expect, actual); diff != "" {
+				t.Errorf("unexpected TDX result (-want +got):\n%s", diff)
 			}
 		})
 	}
