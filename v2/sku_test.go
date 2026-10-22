@@ -1,13 +1,14 @@
 package skewer
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v8"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v9"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -1123,5 +1124,33 @@ func Test_SKU_IsNestedSNPSupported(t *testing.T) {
 				t.Errorf("unexpected child SNP result (-want +got):\n%s", diff)
 			}
 		})
+	}
+}
+
+// Confirms the uppercase Name decoding fix for https://github.com/Azure/azure-sdk-for-go/issues/23342.
+func Test_SKU_UnmarshalZoneDetails(t *testing.T) {
+	var resource armcompute.ResourceSKU
+	err := json.Unmarshal([]byte(`{
+		"name": "Standard_D2s_v3",
+		"locationInfo": [{
+			"location": "eastus2",
+			"zoneDetails": [{
+				"Name": ["1", "2", "3"],
+				"capabilities": [{"name": "UltraSSDAvailable", "value": "True"}]
+			}]
+		}]
+	}`), &resource)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sku := SKU(resource)
+	for _, zone := range []string{"1", "2", "3"} {
+		if !sku.IsUltraSSDAvailableInAvailabilityZone(zone) {
+			t.Errorf("expected Ultra SSD availability in zone %s after decoding uppercase Name", zone)
+		}
+	}
+	if sku.IsUltraSSDAvailableInAvailabilityZone("4") {
+		t.Error("expected no Ultra SSD availability in zone 4")
 	}
 }
