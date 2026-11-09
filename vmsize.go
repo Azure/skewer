@@ -13,7 +13,12 @@ import (
 // fetched using the ResourceSKU API, are not included here. They can be found in sku.go.
 
 var skuSizeScheme = regexp.MustCompile(
-	`^([A-Z])([A-Z]?)([A-Z]?)([0-9]+)-?((?:[0-9]+)?)((?:[abcdeiflmnotspPr]+|C+|NP)?)_?(?:NDR_)?(?:((?:xl_)?[A-Z]+[0-9]+[A-Z]*)_?)?(_cc_)?(_[0-9]+_)?(_MI300X_)?(_H100_)?((?:[vV][1-9])?)?(_Promo)?$`,
+	`^(?P<family>[A-Z])(?P<subfamily>[A-Z]?)(?P<subfamilyExtra>[A-Z]?)` +
+		`(?P<cpus>[0-9]+)-?(?P<cpusConstrained>(?:[0-9]+)?)` +
+		`(?P<additiveFeatures>(?:[abcdeiflmnotspPr]+|C+|NP)?)_?(?:NDR_)?` +
+		`(?:(?P<acceleratorType>(?:xl_)?[A-Z]+[0-9]+[A-Z]*)_?)?` +
+		`(?P<confidentialChildCapability>_cc_)?(?P<memoryCapacity>_[0-9]+_)?` +
+		`(?P<version>(?:[vV][1-9])?)?(?P<promoVersion>_Promo)?$`,
 )
 
 // Azure only reports nested virtualization support for new SKUs.
@@ -129,25 +134,47 @@ var acceleratorTypeBySize = map[string]string{
 	"NV32as_v4": "MI25",
 }
 
+// VMSizeType describes the naming components of a bare VM size, such as NC4as_T4_v3.
 type VMSizeType struct {
-	Family                      string
-	Subfamily                   *string
-	Cpus                        string
-	CpusConstrained             *string
-	AdditiveFeatures            []rune
-	AcceleratorType             *string
+	// Family is the first uppercase letter, e.g. "N" in NC4as_T4_v3
+	// or "D" in D2s_v3.
+	Family string
+	// Subfamily is the remaining uppercase prefix before the CPU count,
+	// e.g. "C" in NC4as_T4_v3; nil when absent, as in D2s_v3.
+	Subfamily *string
+	// Cpus is the CPU count encoded in the name, e.g. "8" in M8-2ms_v2
+	// or "2" in D2s_v3. For constrained sizes, it is the original size's
+	// vCPU count before reduction: M8-2ms_v2 retains the memory and I/O
+	// resources of M8ms_v2, but has only 2 active vCPUs.
+	Cpus string
+	// CpusConstrained is the active vCPU count after a hyphen,
+	// e.g. "2" in M8-2ms_v2; nil when absent.
+	CpusConstrained *string
+	// AdditiveFeatures preserves the feature letters after the CPU counts,
+	// e.g. [a,s] in NC4as_T4_v3.
+	// See https://learn.microsoft.com/en-us/azure/virtual-machines/vm-naming-conventions#naming-convention-explanation
+	AdditiveFeatures []rune
+	// AcceleratorType is the accelerator model, e.g. "T4" in NC4as_T4_v3.
+	// Known models may also be supplied by lookup, e.g. "V100" for NC6s_v3;
+	// nil when neither the name nor the lookup identifies a model.
+	AcceleratorType *string
+	// ConfidentialChildCapability reports the presence of the _cc_ marker,
+	// e.g. true for EC48as_cc_v5.
 	ConfidentialChildCapability bool
-	Version                     string
-	PromoVersion                bool
-	MI300Series                 bool
-	H100Series                  bool
-	Series                      string
+	// Version is the version token, e.g. "v3" in NC4as_T4_v3; empty for NV24.
+	Version string
+	// PromoVersion reports a trailing _Promo, e.g. true for D2s_v3_Promo.
+	PromoVersion bool
+	// Series combines family, subfamily, feature letters, and optional version,
+	// e.g. "NCas_v3" for NC4as_T4_v3. It omits CPU counts, accelerator models,
+	// _cc_, numeric memory components, and _Promo.
+	Series string
 }
 
-// parseVMSize parses the VM size and returns the parts as a map.
+// parseVMSize parses the VM size and returns the regex captures.
 func parseVMSize(vmSizeName string) ([]string, error) {
 	parts := skuSizeScheme.FindStringSubmatch(vmSizeName)
-	if parts == nil || len(parts) < 10 {
+	if len(parts) != skuSizeScheme.NumSubexp()+1 {
 		return nil, fmt.Errorf("could not parse VM size %s", vmSizeName)
 	}
 	return parts, nil
@@ -165,38 +192,37 @@ func GetVMSize(vmSizeName string) (*VMSizeType, error) {
 		return nil, err
 	}
 
+	part := func(name string) string {
+		return parts[skuSizeScheme.SubexpIndex(name)]
+	}
+
 	// [Family] - ([A-Z]): Captures a single uppercase letter.
-	vmSize.Family = parts[1]
+	vmSize.Family = part("family")
 
 	// [Sub-family]* - ([A-Z]?): Optionally captures another uppercase letter.
-	if len(parts[2]) > 0 {
-		var subfamilyStr string
-		if len(parts[3]) > 0 {
-			subfamilyStr = parts[2] + parts[3]
-		} else {
-			subfamilyStr = parts[2]
-		}
+	if len(part("subfamily")) > 0 {
+		subfamilyStr := part("subfamily") + part("subfamilyExtra")
 		vmSize.Subfamily = &subfamilyStr
 	}
 
 	// [# of vCPUs] - ([0-9]+): Captures one or more digits.
-	vmSize.Cpus = parts[4]
+	vmSize.Cpus = part("cpus")
 
 	// [Constrained vCPUs]*
 	// -?: Optionally captures a hyphen.
 	// ((?:[0-9]+)?): Optionally captures another sequence of one or more digits.
-	if len(parts[5]) > 0 {
-		_, err := strconv.Atoi(parts[5])
+	if cpusConstrained := part("cpusConstrained"); len(cpusConstrained) > 0 {
+		_, err := strconv.Atoi(cpusConstrained)
 		if err != nil {
 			return nil, fmt.Errorf("converting constrained CPUs, %w", err)
 		}
-		vmSize.CpusConstrained = &parts[5]
+		vmSize.CpusConstrained = &cpusConstrained
 	}
 
 	// [Additive Features]
 	// ((?:[abcdilmtspPr]+|C+|NP)?): Captures a sequence of letters representing certain attributes.
 	// It can capture combinations like 'abcdilmtspPr' or 'C+' or 'NP'.
-	vmSize.AdditiveFeatures = []rune(parts[6])
+	vmSize.AdditiveFeatures = []rune(part("additiveFeatures"))
 
 	// [Accelerator Type]*
 	// _?: Optionally captures an underscore.
@@ -205,10 +231,10 @@ func GetVMSize(vmSizeName string) (*VMSizeType, error) {
 	// trailing letters (e.g. "MI300X"), and the optional "xl_" size descriptor
 	// used by some GPU SKUs (e.g. "xl_RTXPRO6000BSE" in NC288ds_xl_RTXPRO6000BSE_v6).
 	// A trailing optional underscore is also captured.
-	if len(parts[7]) > 0 {
+	if accelerator := part("acceleratorType"); len(accelerator) > 0 {
 		// Strip the optional size descriptor (e.g. "xl_") so AcceleratorType reflects
 		// the accelerator name only.
-		accelerator := strings.TrimPrefix(parts[7], "xl_")
+		accelerator = strings.TrimPrefix(accelerator, "xl_")
 		vmSize.AcceleratorType = &accelerator
 	} else if accelerator, ok := acceleratorTypeBySize[strings.TrimSuffix(vmSizeName, "_Promo")]; ok {
 		vmSize.AcceleratorType = &accelerator
@@ -216,38 +242,24 @@ func GetVMSize(vmSizeName string) (*VMSizeType, error) {
 
 	// [Confidential Child Capability]* - only AKS
 	// (_cc_)?: Optionally captures the string "cc" with underscores on both sides.
-	if parts[8] == "_cc_" {
+	if part("confidentialChildCapability") == "_cc_" {
 		vmSize.ConfidentialChildCapability = true
 	}
 
-	// parts slice at index 8 disambiguates more enhanced memory and I/O capabilities
-	// for Standard M memory-optimized VM series.
+	// The memoryCapacity capture identifies the memory capacity component
+	// for Standard M memory-optimized VM series; it is not exposed separately.
 	// For example:
 	// 1 in Standard_M96s_1_v3
 	// and 2 in Standard_M96s_2_v3
 	// Ref: https://learn.microsoft.com/en-us/azure/virtual-machines/msv3-mdsv3-medium-series
 
-	// [MI300X]*
-	// (_MI300X_)?: Optionally captures the string "_MI300X".
-	// This is used to identify the MI300 series of VMs.
-	if parts[10] == "MI300X" {
-		vmSize.MI300Series = true
-	}
-
-	// [H100]*
-	// (_H100_)?: Optionally captures the string "_H100".
-	// This is used to identify the H100 series of VMs.
-	if parts[11] == "H100" {
-		vmSize.H100Series = true
-	}
-
 	// [Version]*
 	// Optionally captures the pattern 'v' or 'V' followed by a digit from 1 to 9.
-	vmSize.Version = parts[12]
+	vmSize.Version = part("version")
 
 	// [Promo]*
 	// (_Promo)?: Optionally captures the string "_Promo".
-	if parts[13] == "_Promo" {
+	if part("promoVersion") == "_Promo" {
 		vmSize.PromoVersion = true
 	}
 
