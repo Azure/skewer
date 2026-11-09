@@ -444,7 +444,13 @@ func (s *SKU) GetSize() string {
 }
 
 func (s *SKU) GetVMSize() (*VMSizeType, error) {
-	return GetVMSize(s.GetSize())
+	size := s.GetSize()
+	// Flex SKUs report only "Flex" in Size; their names carry the sizing details.
+	// TODO: Remove this workaround when Flex is removed.
+	if size == "Flex" {
+		return getVMSizeFromName(s.GetName())
+	}
+	return GetVMSize(size)
 }
 
 // GetLocation returns the location for a given SKU.

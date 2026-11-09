@@ -186,6 +186,11 @@ func parseVMSize(vmSizeName string) ([]string, error) {
 	return parts, nil
 }
 
+// getVMSizeFromName parses a SKU name after removing an optional Standard_ prefix.
+func getVMSizeFromName(name string) (*VMSizeType, error) {
+	return GetVMSize(strings.TrimPrefix(name, "Standard_"))
+}
+
 // GetVMSize is a helper function used by GetVMSize() in sku.go
 func GetVMSize(vmSizeName string) (*VMSizeType, error) {
 	vmSize := VMSizeType{}

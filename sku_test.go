@@ -11,6 +11,65 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func Test_SKU_GetVMSize(t *testing.T) {
+	cases := map[string]struct {
+		sku    SKU
+		expect *VMSizeType
+		err    string
+	}{
+		"Flex uses name": {
+			sku: SKU{Name: to.StringPtr("Standard_D2s_Flex"), Size: to.StringPtr("Flex")},
+			expect: &VMSizeType{
+				Family: "D", Cpus: "2", AdditiveFeatures: []rune{'s'},
+				Flex: to.StringPtr("Flex"), Series: "Ds_Flex",
+			},
+		},
+		"Flex Prime uses name": {
+			sku: SKU{Name: to.StringPtr("Standard_E4s_Flex_Prime"), Size: to.StringPtr("Flex")},
+			expect: &VMSizeType{
+				Family: "E", Cpus: "4", AdditiveFeatures: []rune{'s'},
+				Flex: to.StringPtr("Flex_Prime"), Series: "Es_Flex_Prime",
+			},
+		},
+		"non-Flex still uses size": {
+			sku: SKU{Name: to.StringPtr("Standard_E4s_Flex_Prime"), Size: to.StringPtr("D2s_v3")},
+			expect: &VMSizeType{
+				Family: "D", Cpus: "2", AdditiveFeatures: []rune{'s'},
+				Version: "v3", Series: "Ds_v3",
+			},
+		},
+		"Flex with missing name fails": {
+			sku: SKU{Size: to.StringPtr("Flex")},
+			err: "could not parse VM size ",
+		},
+		"Flex with unsupported name fails": {
+			sku: SKU{Name: to.StringPtr("Standard_Experimental_Boost4"), Size: to.StringPtr("Flex")},
+			err: "could not parse VM size Experimental_Boost4",
+		},
+		"Flex does not strip arbitrary prefixes": {
+			sku: SKU{Name: to.StringPtr("Other_D2s_Flex"), Size: to.StringPtr("Flex")},
+			err: "could not parse VM size Other_D2s_Flex",
+		},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			vmSize, err := tc.sku.GetVMSize()
+			if tc.err != "" {
+				if err == nil || err.Error() != tc.err || vmSize != nil {
+					t.Fatalf("expected nil and %q, got %v and %v", tc.err, vmSize, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if diff := cmp.Diff(tc.expect, vmSize); diff != "" {
+				t.Errorf("VM size mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func Test_SKU_GetCapabilityQuantity(t *testing.T) {
 	cases := map[string]struct {
 		sku        compute.ResourceSku
