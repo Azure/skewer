@@ -413,6 +413,20 @@ var testCases = []struct {
 		},
 		err: nil,
 	},
+	{
+		name: "Standard_NCC40ads_H100_v5",
+		size: "NCC40ads_H100_v5",
+		expectedVM: &VMSizeType{
+			Family:                      "N",
+			Subfamily:                   to.Ptr("CC"),
+			Cpus:                        "40",
+			AdditiveFeatures:            []rune{'a', 'd', 's'},
+			AcceleratorType:             to.Ptr("H100"),
+			ConfidentialChildCapability: false,
+			Version:                     "v5",
+			Series:                      "NCCads_v5",
+		},
+	},
 }
 
 // Test_GetVMSize tests the GetVMSize() function.
