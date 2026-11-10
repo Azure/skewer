@@ -12,11 +12,12 @@ import (
 // Note: Some common capabilities like familyName and VCPUs, which can also be
 // fetched using the ResourceSKU API, are not included here. They can be found in sku.go.
 
-// Accept u and x as observed feature letters; their capability meanings are
-// unknown, so preserve them without interpreting them.
 var skuSizeScheme = regexp.MustCompile(
 	`^(?P<family>[A-Z])(?P<subfamily>[A-Z]?)(?P<subfamilyExtra>[A-Z]?)` +
 		`(?P<cpus>[0-9]+)-?(?P<cpusConstrained>(?:[0-9]+)?)` +
+		// Accept u and x as observed feature letters; their capability meanings are
+		// unknown, so preserve them without interpreting them. Observed sizes were
+		// Standard_D96nldus_v6 and Standard_M896xds_16_v3.
 		`(?P<additiveFeatures>(?:[abcdeiflmnotspPrux]+|C+|NP)?)` +
 		`(?:_(?P<flex>Flex(?:_Prime)?))?` +
 		`(?:_?(?:NDR_)?(?P<acceleratorType>(?:xl_)?[A-Z]+[0-9]+[A-Z]*)_?)?` +
