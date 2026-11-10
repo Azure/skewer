@@ -19,21 +19,28 @@ func Test_SKU_GetVMSize(t *testing.T) {
 		err    string
 	}{
 		"Flex uses name": {
-			sku: SKU{Name: to.Ptr("Standard_D2s_Flex"), Size: to.Ptr("Flex")},
+			sku: SKU{Name: to.Ptr("D2s_Flex"), Size: to.Ptr("Flex")},
 			expect: &VMSizeType{
 				Family: "D", Cpus: "2", AdditiveFeatures: []rune{'s'},
 				Flex: to.Ptr("Flex"), Series: "Ds_Flex",
 			},
 		},
 		"Flex Prime uses name": {
-			sku: SKU{Name: to.Ptr("Standard_E4s_Flex_Prime"), Size: to.Ptr("Flex")},
+			sku: SKU{Name: to.Ptr("E4s_Flex_Prime"), Size: to.Ptr("Flex")},
+			expect: &VMSizeType{
+				Family: "E", Cpus: "4", AdditiveFeatures: []rune{'s'},
+				Flex: to.Ptr("Flex_Prime"), Series: "Es_Flex_Prime",
+			},
+		},
+		"Flex_Prime size uses name": {
+			sku: SKU{Name: to.Ptr("E4s_Flex_Prime"), Size: to.Ptr("Flex_Prime")},
 			expect: &VMSizeType{
 				Family: "E", Cpus: "4", AdditiveFeatures: []rune{'s'},
 				Flex: to.Ptr("Flex_Prime"), Series: "Es_Flex_Prime",
 			},
 		},
 		"non-Flex still uses size": {
-			sku: SKU{Name: to.Ptr("Standard_E4s_Flex_Prime"), Size: to.Ptr("D2s_v3")},
+			sku: SKU{Name: to.Ptr("E4s_Flex_Prime"), Size: to.Ptr("D2s_v3")},
 			expect: &VMSizeType{
 				Family: "D", Cpus: "2", AdditiveFeatures: []rune{'s'},
 				Version: "v3", Series: "Ds_v3",
@@ -44,7 +51,7 @@ func Test_SKU_GetVMSize(t *testing.T) {
 			err: "could not parse VM size ",
 		},
 		"Flex with unsupported name fails": {
-			sku: SKU{Name: to.Ptr("Standard_Experimental_Boost4"), Size: to.Ptr("Flex")},
+			sku: SKU{Name: to.Ptr("Experimental_Boost4"), Size: to.Ptr("Flex")},
 			err: "could not parse VM size Experimental_Boost4",
 		},
 		"Flex does not strip arbitrary prefixes": {

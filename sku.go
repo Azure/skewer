@@ -479,9 +479,9 @@ func (s *SKU) GetSize() string {
 
 func (s *SKU) GetVMSize() (*VMSizeType, error) {
 	size := s.GetSize()
-	// Flex SKUs report only "Flex" in Size; their names carry the sizing details.
+	// Flex SKUs report "Flex" or "Flex_Prime" in Size; their names carry the sizing details.
 	// TODO: Remove this workaround when Flex is removed.
-	if size == "Flex" {
+	if size == "Flex" || size == "Flex_Prime" {
 		return getVMSizeFromName(s.GetName())
 	}
 	return GetVMSize(size)
