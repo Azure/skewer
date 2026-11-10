@@ -427,6 +427,85 @@ var testCases = []struct {
 			Series:                      "NCCads_v5",
 		},
 	},
+	{
+		name: "D2_Flex",
+		size: "D2_Flex",
+		expectedVM: &VMSizeType{
+			Family:           "D",
+			Cpus:             "2",
+			AdditiveFeatures: []rune{},
+			Flex:             to.Ptr("Flex"),
+			Series:           "D_Flex",
+		},
+	},
+	{
+		name: "D2s_Flex_Prime",
+		size: "D2s_Flex_Prime",
+		expectedVM: &VMSizeType{
+			Family:           "D",
+			Cpus:             "2",
+			AdditiveFeatures: []rune{'s'},
+			Flex:             to.Ptr("Flex_Prime"),
+			Series:           "Ds_Flex_Prime",
+		},
+	},
+	{
+		name: "E4s_Flex",
+		size: "E4s_Flex",
+		expectedVM: &VMSizeType{
+			Family:           "E",
+			Cpus:             "4",
+			AdditiveFeatures: []rune{'s'},
+			Flex:             to.Ptr("Flex"),
+			Series:           "Es_Flex",
+		},
+	},
+	{
+		name: "F8s_Flex_Prime",
+		size: "F8s_Flex_Prime",
+		expectedVM: &VMSizeType{
+			Family:           "F",
+			Cpus:             "8",
+			AdditiveFeatures: []rune{'s'},
+			Flex:             to.Ptr("Flex_Prime"),
+			Series:           "Fs_Flex_Prime",
+		},
+	},
+	{
+		// Synthetic size to test Flex with a version; not a verified Azure SKU.
+		name: "D2s_Flex_v6",
+		size: "D2s_Flex_v6",
+		expectedVM: &VMSizeType{
+			Family:           "D",
+			Cpus:             "2",
+			AdditiveFeatures: []rune{'s'},
+			Flex:             to.Ptr("Flex"),
+			Version:          "v6",
+			Series:           "Ds_Flex_v6",
+		},
+	},
+	{
+		name: "Standard_D96nldus_v6",
+		size: "D96nldus_v6",
+		expectedVM: &VMSizeType{
+			Family:           "D",
+			Cpus:             "96",
+			AdditiveFeatures: []rune{'n', 'l', 'd', 'u', 's'},
+			Version:          "v6",
+			Series:           "Dnldus_v6",
+		},
+	},
+	{
+		name: "Standard_M896xds_16_v3",
+		size: "M896xds_16_v3",
+		expectedVM: &VMSizeType{
+			Family:           "M",
+			Cpus:             "896",
+			AdditiveFeatures: []rune{'x', 'd', 's'},
+			Version:          "v3",
+			Series:           "Mxds_v3",
+		},
+	},
 }
 
 // Test_GetVMSize tests the GetVMSize() function.
@@ -443,10 +522,12 @@ func Test_GetVMSize(t *testing.T) {
 		a.Equal(test.expectedVM.Cpus, vmSize.Cpus)
 		a.Equal(test.expectedVM.CpusConstrained, vmSize.CpusConstrained)
 		a.Equal(test.expectedVM.AdditiveFeatures, vmSize.AdditiveFeatures)
+		a.Equal(test.expectedVM.Flex, vmSize.Flex)
 		a.Equal(test.expectedVM.AcceleratorType, vmSize.AcceleratorType)
 		a.Equal(test.expectedVM.ConfidentialChildCapability, vmSize.ConfidentialChildCapability)
 		a.Equal(test.expectedVM.Version, vmSize.Version)
 		a.Equal(test.expectedVM.PromoVersion, vmSize.PromoVersion)
+		a.Equal(test.expectedVM.Series, vmSize.Series)
 	}
 }
 

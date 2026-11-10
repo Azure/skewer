@@ -15,10 +15,14 @@ import (
 var skuSizeScheme = regexp.MustCompile(
 	`^(?P<family>[A-Z])(?P<subfamily>[A-Z]?)(?P<subfamilyExtra>[A-Z]?)` +
 		`(?P<cpus>[0-9]+)-?(?P<cpusConstrained>(?:[0-9]+)?)` +
-		`(?P<additiveFeatures>(?:[abcdeiflmnotspPr]+|C+|NP)?)_?(?:NDR_)?` +
-		`(?:(?P<acceleratorType>(?:xl_)?[A-Z]+[0-9]+[A-Z]*)_?)?` +
+		// Accept u and x as observed feature letters; their capability meanings are
+		// unknown, so preserve them without interpreting them. Observed sizes were
+		// Standard_D96nldus_v6 and Standard_M896xds_16_v3.
+		`(?P<additiveFeatures>(?:[abcdeiflmnotspPrux]+|C+|NP)?)` +
+		`(?:_(?P<flex>Flex(?:_Prime)?))?` +
+		`(?:_?(?:NDR_)?(?P<acceleratorType>(?:xl_)?[A-Z]+[0-9]+[A-Z]*)_?)?` +
 		`(?P<confidentialChildCapability>_cc_)?(?P<memoryCapacity>_[0-9]+_)?` +
-		`(?P<version>(?:[vV][1-9])?)?(?P<promoVersion>_Promo)?$`,
+		`(?:_?(?P<version>[vV][1-9]))?(?P<promoVersion>_Promo)?$`,
 )
 
 // Azure only reports nested virtualization support for new SKUs.
@@ -154,6 +158,9 @@ type VMSizeType struct {
 	// e.g. [a,s] in NC4as_T4_v3.
 	// See https://learn.microsoft.com/en-us/azure/virtual-machines/vm-naming-conventions#naming-convention-explanation
 	AdditiveFeatures []rune
+	// Flex is the Flex variant, either "Flex" in D2s_Flex or "Flex_Prime"
+	// in D2s_Flex_Prime; nil when absent.
+	Flex *string
 	// AcceleratorType is the accelerator model, e.g. "T4" in NC4as_T4_v3.
 	// Known models may also be supplied by lookup, e.g. "V100" for NC6s_v3;
 	// nil when neither the name nor the lookup identifies a model.
@@ -165,9 +172,9 @@ type VMSizeType struct {
 	Version string
 	// PromoVersion reports a trailing _Promo, e.g. true for D2s_v3_Promo.
 	PromoVersion bool
-	// Series combines family, subfamily, feature letters, and optional version,
-	// e.g. "NCas_v3" for NC4as_T4_v3. It omits CPU counts, accelerator models,
-	// _cc_, numeric memory components, and _Promo.
+	// Series combines family, subfamily, feature letters, optional Flex, and version,
+	// e.g. "NCas_v3" for NC4as_T4_v3.
+	// It omits CPU counts, accelerator models, _cc_, numeric memory components, and _Promo.
 	Series string
 }
 
@@ -178,6 +185,11 @@ func parseVMSize(vmSizeName string) ([]string, error) {
 		return nil, fmt.Errorf("could not parse VM size %s", vmSizeName)
 	}
 	return parts, nil
+}
+
+// getVMSizeFromName parses a SKU name after removing an optional Standard_ prefix.
+func getVMSizeFromName(name string) (*VMSizeType, error) {
+	return GetVMSize(strings.TrimPrefix(name, "Standard_"))
 }
 
 // GetVMSize is a helper function used by GetVMSize() in sku.go
@@ -223,6 +235,11 @@ func GetVMSize(vmSizeName string) (*VMSizeType, error) {
 	// ((?:[abcdilmtspPr]+|C+|NP)?): Captures a sequence of letters representing certain attributes.
 	// It can capture combinations like 'abcdilmtspPr' or 'C+' or 'NP'.
 	vmSize.AdditiveFeatures = []rune(part("additiveFeatures"))
+
+	// [Flex]
+	if flex := part("flex"); flex != "" {
+		vmSize.Flex = &flex
+	}
 
 	// [Accelerator Type]*
 	// _?: Optionally captures an underscore.
@@ -272,7 +289,11 @@ func GetVMSize(vmSizeName string) (*VMSizeType, error) {
 	if len(vmSize.Version) > 0 {
 		version = "_" + vmSize.Version
 	}
-	vmSize.Series = vmSize.Family + subfamily + string(vmSize.AdditiveFeatures) + version
+	flex := ""
+	if vmSize.Flex != nil {
+		flex = "_" + *vmSize.Flex
+	}
+	vmSize.Series = vmSize.Family + subfamily + string(vmSize.AdditiveFeatures) + flex + version
 
 	return &vmSize, nil
 }
